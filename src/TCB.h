@@ -12,6 +12,7 @@ class TCB{
 		States state;
 		// color
 		int ingress_time;
+		int current_time;
 		const int duration;
 		int priority;
 		queue<string> events;
@@ -30,6 +31,6 @@ class TCB{
 		const int getDuration();
 		int getPriority();
 		void addEvent(string ev);
-		void removeEvent(string ev);
+		void removeEvent();
 		queue<string> getEventQueue();
 };

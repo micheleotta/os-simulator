@@ -1,34 +1,34 @@
 #include "SystemSimulator.h"
 
-SystemSimulator* instancia_SS(NULL);
+SystemSimulator* SystemSimulator::instancia_SS(NULL);
 		
-SystemSimulator(){
-		config_path = CONF_FILE;
+SystemSimulator::SystemSimulator(){
+	config_path = CONF_FILE;
 }
 
 // Singleton
-SystemSimulator* getSystemSimulator(){
+SystemSimulator* SystemSimulator::getSystemSimulator(){
 	if(instancia_SS == NULL)
 		instancia_SS = new SystemSimulator();
 	return instancia_SS;
 }
 
-~SystemSimulator(){
+SystemSimulator::~SystemSimulator(){
 
 }
 
-void Create(){
+void SystemSimulator::Create(){
 	create_system();
 	run();
 	
 }
 		
-void create_system(){
+void SystemSimulator::create_system(){
 	// Leitura do arquivo de configuracao 
 	ifstream config_file(config_path);
     if (!config_file.is_open()) {
         cerr << "Error " << config_path << endl;
-        return 1;
+        return;
     }
     
 	string s;
@@ -55,22 +55,23 @@ void create_system(){
 
 		// Le os eventos
         while (getline(ss, events, ';')) {
-            if (!events.empty())
+            if (!events.empty()){
 				// adicionar no queue task_events
 				break;
+			}
         }
     }
 
     config_file.close();
 }
 
-void run(){
+void SystemSimulator::run(){
 	//fazer
-	while(!finished){
+	while(!finished()){
 		break;
 	}
 }
 
-bool finished(){
+bool SystemSimulator::finished(){
 	return true; // mudar
 }

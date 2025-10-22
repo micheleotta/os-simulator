@@ -1,6 +1,7 @@
 #pragma once
 #include "TCB.h"
 
+#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -17,7 +18,7 @@ using namespace std;
 		vector<int> myVector;
 		vector<TCB> sys_tasks;
 		vector<TCB> remaining_tasks;
-		char* config_path;
+		string config_path;
 		// sim type enum ()
 		// tempo  global_clock
 		

@@ -1,63 +1,64 @@
 #include "TCB.h"
-
-TCB(string ID = "None", int init = -1, int dur = -1, int prio = -1){
-	id = ID;
+ 
+TCB::TCB(string ID, int init, int dur, int prio):
+	id(ID), duration(dur)
+{
 	state = States::New;
 	// color
 	ingress_time = init;
 	current_time = 0;
-	duration = dur;
 	priority = prio;
 }
 
-~TCB(){
+TCB::~TCB(){
 	
 }
 
-const string getId(){
+const string TCB::getId(){
 	return id;
 }
 
-int getStateInt(){
-	return (int)state;
+int TCB::getStateInt(){
+	return static_cast<int>(state);
 }
 
-States getState(){
+States TCB::getState(){
 	return state;
 }
 
-void setState(States s){
+void TCB::setState(States s){
 	state = s;
 }
 
-int getIngressTime(){
+int TCB::getIngressTime(){
 	return ingress_time;
 }
 
-int getCurrentTime(){
+int TCB::getCurrentTime(){
 	return current_time;
 }
 
-void setCurrentTime(int t){
+void TCB::setCurrentTime(int t){
 	current_time = t;
 }
 
-const int getDuration(){
+const int TCB::getDuration(){
 	return duration;
 }
 
-int getPriority(){
+int TCB::getPriority(){
 	return priority;
 }
 
-void addEvent(string ev){
-	events.append(ev);
+void TCB::addEvent(string ev){
+	events.push(ev);
 }
 
-void removeEvent(string ev){
-	events.remove(ev);
+void TCB::removeEvent(){
+	if(!events.empty())
+		events.pop();
 }
 
-queue<string> getEventQueue(){
+queue<string> TCB::getEventQueue(){
 	return events;
 }
