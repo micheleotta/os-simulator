@@ -1,5 +1,5 @@
 #pragma once
-#include "TCB.h"
+#include "System.h"
 
 #include <iostream>
 #include <fstream>
@@ -14,7 +14,7 @@ using namespace std;
  class SystemSimulator{
 	 
 	 private:
-		// System* system;
+		System* system;
 		vector<int> myVector;
 		vector<TCB> sys_tasks;
 		vector<TCB> remaining_tasks;

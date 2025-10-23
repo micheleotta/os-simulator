@@ -32,14 +32,17 @@ void SystemSimulator::create_system(){
     }
     
 	string s;
-	string alg_escalonamento;
+	string scheduler_type;
 	int quantum;
 	// Le a primeira linha com o algoritmo de escalonamento e o valor do quantum
 	if(getline(config_file, s)){
 		stringstream ss(s);
-        getline(ss, alg_escalonamento, ';');
+        getline(ss, scheduler_type, ';');
         ss >> quantum;
 	}
+	system = new System(scheduler_type, quantum);
+	
+	TCB* new_task = NULL;
 	string id;
 	int ingress_time, duration, priority;
     string events;
@@ -47,17 +50,21 @@ void SystemSimulator::create_system(){
     while (getline(config_file, s)) {
         stringstream ss(s);
         getline(ss, id, ';');
+        // ss >> cor;
+        // ss.ignore(); // passa ';'
         ss >> ingress_time;
         ss.ignore(); // passa ';'
         ss >> duration;
         ss.ignore();
         ss >> priority;
+        
+        new_task = new TCB(id, ingress_time, duration, priority);
 
 		// Le os eventos
         while (getline(ss, events, ';')) {
             if (!events.empty()){
 				// adicionar no queue task_events
-				break;
+				new_task->addEvent(events);
 			}
         }
     }
