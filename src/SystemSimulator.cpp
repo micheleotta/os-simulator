@@ -77,11 +77,22 @@ void SystemSimulator::create_system(){
 
 void SystemSimulator::run(){
 	//fazer
-	while(!finished()){
+	while(!system->finished()){
+		
+		// checa se ainda ha tarefas a serem adicionadas no sistema
+		if(!remaining_tasks.empty()){
+		
+		// if (tempo global >= inicio tarefa){
+			// system->task_ready(tarefa);
+			// retira tarefa das remaining_tasks
+			// auto it = find(remaining_tasks.begin(), remaining_tasks.end(), tarefa);
+			// if (it != remaining_tasks.end()) {
+				// remaining_tasks.erase(it);
+			// }
+		// }
+		
+		}
+		
 		break;
 	}
-}
-
-bool SystemSimulator::finished(){
-	return true; // mudar
 }

@@ -21,8 +21,8 @@ class System{
 		TCB* scheduler_next();
 		// tempo sys_clock()
 		void interrupt();
-		void task_ready(TCB t);
-		void task_sleep(TCB t);
+		void task_ready(TCB* t);
+		void task_sleep(TCB* t);
 		void run();
 		bool finished();
 		int getQuantum();

@@ -20,22 +20,45 @@ void System::interrupt(){
 	
 }
 		
-void System::task_ready(TCB t){
-	// if t na lista waiting -> remove
-	
+void System::task_ready(TCB* t){
+	// retira t da lista waiting	
+	auto it = find(waiting.begin(), waiting.end(), t);
+    if (it != waiting.end()) {
+        waiting.erase(it);
+    }
 	
 	// adiciona t a lista de prontas
 	ready.push_back(t);
 }
 
-void System::task_sleep(TCB t){
+void System::task_sleep(TCB* t){
 	// retira t da lista de prontas
-	
+	auto it = find(ready.begin(), ready.end(), t);
+    if (it != ready.end()) {
+        ready.erase(it);
+    }
+    
 	// insere t na lista de waiting
 	waiting.push_back(t);
 }
 
 void System::run(){
+	
+	// incrementa no current_time ++
+	current_task->setCurrentTime(current_task->getCurrentTime() + 1);
+	
+	// se tarefa ja executou tudo
+	if(current_task->getCurrentTime() == current_task->getDuration()){
+		current_task->setState(States::Terminated); // estado de terminada
+		current_task = scheduler_next(); // seleciona a proxima tarefa a executar
+	}
+	// se quantum encerrou
+	int current_quantum = 0; // criar na classe maybe
+	else if(current_quantum >= getQuantum()){
+		// desativa a tarefa atual
+		task_sleep(current_task);
+		current_task = scheduler_next(); // seleciona a proxima tarefa a executar
+	}
 }
 		
 bool System::finished(){

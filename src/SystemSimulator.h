@@ -25,7 +25,6 @@
 		static SystemSimulator* instancia_SS;
 		void create_system();
 		void run();
-		bool finished();
 		
 	public:
 		static SystemSimulator* getSystemSimulator();
