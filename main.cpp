@@ -4,7 +4,7 @@ int main(){
 	
 	SystemSimulator* pSS;
 	pSS = SystemSimulator::getSystemSimulator();
-	pSS->Create();
+	pSS->Create(); 
 	
 	return 0;
 }
