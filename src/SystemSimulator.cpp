@@ -67,6 +67,9 @@ void SystemSimulator::create_system(){
 				new_task->addEvent(events);
 			}
         }
+        
+        sys_tasks.push_back(new_task);
+        remaining_tasks.push_back(new_task);
     }
 
     config_file.close();

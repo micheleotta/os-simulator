@@ -25,14 +25,14 @@ void System::task_ready(TCB t){
 	
 	
 	// adiciona t a lista de prontas
-	ready.push(t);
+	ready.push_back(t);
 }
 
 void System::task_sleep(TCB t){
 	// retira t da lista de prontas
 	
 	// insere t na lista de waiting
-	waiting.push(t);
+	waiting.push_back(t);
 }
 
 void System::run(){
