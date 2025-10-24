@@ -1,11 +1,15 @@
 #pragma once
 #include "TCB.h"
 
+#include <vector>
+using namespace std;
+
+
 class System{
 	 
 	 private:
-		queue<TCB> ready;
-		queue<TCB> waiting;
+		vector<TCB> ready;
+		vector<TCB> waiting;
 		const string scheduler_type;
 		const int quantum;
 		TCB* current_task;
