@@ -14,8 +14,8 @@
 	 private:
 		System* system;
 		vector<int> myVector;
-		vector<TCB> sys_tasks;
-		vector<TCB> remaining_tasks;
+		vector<TCB*> sys_tasks;
+		vector<TCB*> remaining_tasks;
 		string config_path;
 		// sim type enum ()
 		// tempo  global_clock

@@ -21,6 +21,8 @@ void System::interrupt(){
 }
 		
 void System::task_ready(TCB* t){
+	if (!t) return;
+	
 	// retira t da lista waiting	
 	auto it = find(waiting.begin(), waiting.end(), t);
     if (it != waiting.end()) {
@@ -32,6 +34,8 @@ void System::task_ready(TCB* t){
 }
 
 void System::task_sleep(TCB* t){
+	if (!t) return;
+	
 	// retira t da lista de prontas
 	auto it = find(ready.begin(), ready.end(), t);
     if (it != ready.end()) {
@@ -43,6 +47,7 @@ void System::task_sleep(TCB* t){
 }
 
 void System::run(){
+	int current_quantum = 0; // criar na classe maybe
 	
 	// incrementa no current_time ++
 	current_task->setCurrentTime(current_task->getCurrentTime() + 1);
@@ -53,7 +58,6 @@ void System::run(){
 		current_task = scheduler_next(); // seleciona a proxima tarefa a executar
 	}
 	// se quantum encerrou
-	int current_quantum = 0; // criar na classe maybe
 	else if(current_quantum >= getQuantum()){
 		// desativa a tarefa atual
 		task_sleep(current_task);

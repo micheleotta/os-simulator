@@ -2,14 +2,15 @@
 #include "TCB.h"
 
 #include <vector>
+#include <algorithm>
 using namespace std;
 
 
 class System{
 	 
 	 private:
-		vector<TCB> ready;
-		vector<TCB> waiting;
+		vector<TCB*> ready;
+		vector<TCB*> waiting;
 		const string scheduler_type;
 		const int quantum;
 		TCB* current_task;
