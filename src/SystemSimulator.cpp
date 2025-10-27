@@ -20,7 +20,6 @@ SystemSimulator::~SystemSimulator(){
 void SystemSimulator::Create(){
 	create_system();
 	run();
-	
 }
 		
 void SystemSimulator::create_system(){
@@ -68,6 +67,8 @@ void SystemSimulator::create_system(){
 			}
         }
         
+        // adiciona as tarefas na lista de tarefas do sistema
+        // e tambem nas tarefas ainda nao adicionadas ao sistema
         sys_tasks.push_back(new_task);
         remaining_tasks.push_back(new_task);
     }
@@ -76,23 +77,36 @@ void SystemSimulator::create_system(){
 }
 
 void SystemSimulator::run(){
-	//fazer
-	while(!system->finished()){
+	
+	// apagar essa bomba depois
+	int tempo_temporario = 0;
 		
+	while(!system->finished() or !remaining_tasks.empty()){
 		// checa se ainda ha tarefas a serem adicionadas no sistema
 		if(!remaining_tasks.empty()){
-		
-		// if (tempo global >= inicio tarefa){
-			// system->task_ready(tarefa);
-			// retira tarefa das remaining_tasks
-			// auto it = find(remaining_tasks.begin(), remaining_tasks.end(), tarefa);
-			// if (it != remaining_tasks.end()) {
-				// remaining_tasks.erase(it);
-			// }
-		// }
-		
+			
+			for (const auto& task : remaining_tasks) {
+				// se o tempo corresponde ao tempo de inicio da tarefa,
+				// adiciona-a no sistema e na fila de tarefas prontas
+				if (tempo_temporario >= task->getIngressTime()){
+					system->task_ready(task);
+					// retira tarefa das remaining_tasks			
+					auto it = find(remaining_tasks.begin(), remaining_tasks.end(), task);
+					if (it != remaining_tasks.end()) {
+						remaining_tasks.erase(it);
+					}
+					// entrada de nova tarefa -> syscall
+					// chama o escalonador para eleger a tarefa a executar
+					system->scheduler_next();
+				}
+			}
 		}
+			
+		// APAGAR
+		cout << "tick: " << tempo_temporario;
+		system->run();
 		
-		break;
+		
+		tempo_temporario++;
 	}
 }

@@ -3,17 +3,20 @@
 
 #include <vector>
 #include <algorithm>
+#include <iostream>
 using namespace std;
 
+enum class SchedulerType {FCFS, SRTF, PRIOP};
 
 class System{
 	 
 	 private:
 		vector<TCB*> ready;
 		vector<TCB*> waiting;
-		const string scheduler_type;
+		SchedulerType scheduler_type;
 		const int quantum;
 		TCB* current_task;
+		int current_quantum;
 		// tempo*  global_clock
 		
 	public:

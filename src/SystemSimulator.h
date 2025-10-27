@@ -1,7 +1,6 @@
 #pragma once
 #include "System.h"
 
-#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>

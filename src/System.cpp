@@ -1,16 +1,59 @@
 #include "System.h"
 
 System::System(string st, int q):
-	scheduler_type(st), quantum(q), current_task(NULL)
+	quantum(q), current_task(NULL), current_quantum(0)
 {
+	if (st == "FCFS") scheduler_type = SchedulerType::FCFS;
+	else if (st == "SRTF") scheduler_type = SchedulerType::SRTF;
+	else scheduler_type = SchedulerType::PRIOP;
 }
 	
 System::~System(){}
 
 TCB* System::scheduler_next(){
-	// implementar algoritmos de escalonamento -> switch case ponto de interrogacao
+	// para o primeiro trabalho, as tarefas em espera
+	// so esperam o processador. portanto, aqui elas ja
+	// sao colocadas como prontas
+	for (const auto& waiting_task : waiting) {
+        task_ready(waiting_task);
+    }
+    
+    // reseta o quantum
+    current_quantum = 0;
 	
-	// por hora retornar current p n dar erro
+	// implementar algoritmos de escalonamento
+	switch(scheduler_type){
+		case SchedulerType::FCFS: {
+			// atender a ordem das tarefas prontas
+			current_task = ready.front();
+			break;
+		}
+		case SchedulerType::SRTF: {
+			// proximo a executar -> menor tempo restante
+			current_task = ready[0];
+			int min_time = current_task->getDuration() - current_task->getCurrentTime();
+			int remaining_time = 0;
+			for (const auto& task : ready) {
+				remaining_time = task->getDuration() - task->getCurrentTime();
+				if(remaining_time < min_time){
+					min_time = remaining_time;
+					current_task = task;
+				}
+			}			
+			break;
+		}
+		case SchedulerType::PRIOP: {
+			// FAZER **************
+			current_task = ready[0];
+			break;
+		}
+		default: {
+			// em default, retorna a primeira na fila de tarefas prontas
+			current_task = ready[0];
+			break;
+		}
+	}
+	
 	return current_task;
 }
 
@@ -34,7 +77,7 @@ void System::task_ready(TCB* t){
 }
 
 void System::task_sleep(TCB* t){
-	if (!t) return;
+	if (!t or scheduler_type == SchedulerType::FCFS) return;
 	
 	// retira t da lista de prontas
 	auto it = find(ready.begin(), ready.end(), t);
@@ -46,19 +89,34 @@ void System::task_sleep(TCB* t){
 	waiting.push_back(t);
 }
 
-void System::run(){
-	int current_quantum = 0; // criar na classe maybe
+void System::run(){	
+	// se nao ha tarefa atual, elege uma
+	if(!current_task){
+		current_task = scheduler_next();
+		if(!current_task) return; // prevenir erros
+	}
 	
+	// roda a tarefa atual!
 	// incrementa no current_time ++
 	current_task->setCurrentTime(current_task->getCurrentTime() + 1);
+	current_quantum++; // tambem incrementa considerando o quantum
+	// APAGAR
+	cout << " || tarefa: " << current_task->getId() << endl;
+
 	
 	// se tarefa ja executou tudo
 	if(current_task->getCurrentTime() == current_task->getDuration()){
 		current_task->setState(States::Terminated); // estado de terminada
+		// retira tarefa das lista de prontas
+		auto it = find(ready.begin(), ready.end(), current_task);
+		if (it != ready.end()) {
+			ready.erase(it);
+		}
 		current_task = scheduler_next(); // seleciona a proxima tarefa a executar
 	}
-	// se quantum encerrou
-	else if(current_quantum >= getQuantum()){
+	// se quantum encerrou, sai por preempcao
+	// excecao de FCFS que nao eh preemptivo
+	else if(current_quantum >= getQuantum() && scheduler_type != SchedulerType::FCFS){
 		// desativa a tarefa atual
 		task_sleep(current_task);
 		current_task = scheduler_next(); // seleciona a proxima tarefa a executar
