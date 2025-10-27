@@ -30,7 +30,7 @@ TCB* System::scheduler_next(){
 		}
 		case SchedulerType::SRTF: {
 			// proximo a executar -> menor tempo restante
-			current_task = ready[0];
+			current_task = ready.front();
 			int min_time = current_task->getDuration() - current_task->getCurrentTime();
 			int remaining_time = 0;
 			for (const auto& task : ready) {
@@ -43,8 +43,13 @@ TCB* System::scheduler_next(){
 			break;
 		}
 		case SchedulerType::PRIOP: {
-			// FAZER **************
-			current_task = ready[0];
+			// proximo a executar -> maior prioridade
+			current_task = ready.front();
+			for (const auto& task : ready) {
+				if(task->getPriority() > current_task->getPriority()){
+					current_task = task;
+				}
+			}
 			break;
 		}
 		default: {

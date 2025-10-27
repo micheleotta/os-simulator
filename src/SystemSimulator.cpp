@@ -82,24 +82,34 @@ void SystemSimulator::run(){
 	int tempo_temporario = 0;
 		
 	while(!system->finished() or !remaining_tasks.empty()){
+		
 		// checa se ainda ha tarefas a serem adicionadas no sistema
 		if(!remaining_tasks.empty()){
 			
-			for (const auto& task : remaining_tasks) {
+			// para comparar ao final se tarefas foram adicionadas ao sistema
+			long unsigned int qtd_remaining = remaining_tasks.size();
+			
+			for (auto it = remaining_tasks.begin(); it != remaining_tasks.end();) {
+				TCB* task = *it;
+				
 				// se o tempo corresponde ao tempo de inicio da tarefa,
 				// adiciona-a no sistema e na fila de tarefas prontas
 				if (tempo_temporario >= task->getIngressTime()){
 					system->task_ready(task);
 					// retira tarefa das remaining_tasks			
-					auto it = find(remaining_tasks.begin(), remaining_tasks.end(), task);
-					if (it != remaining_tasks.end()) {
-						remaining_tasks.erase(it);
-					}
-					// entrada de nova tarefa -> syscall
-					// chama o escalonador para eleger a tarefa a executar
-					system->scheduler_next();
+					remaining_tasks.erase(it);
+				}
+				else{ 
+					++it;
 				}
 			}
+			
+			if(qtd_remaining != remaining_tasks.size()){
+				// entrada de nova tarefa -> syscall
+				// chama o escalonador para eleger a tarefa a executar
+				system->scheduler_next();
+			}
+
 		}
 			
 		// APAGAR
