@@ -3,6 +3,8 @@
 System::System(string st, int q):
 	quantum(q), current_task(NULL), current_quantum(0)
 {
+	global_clock = new Clock();
+	
 	if (st == "FCFS") scheduler_type = SchedulerType::FCFS;
 	else if (st == "SRTF") scheduler_type = SchedulerType::SRTF;
 	else scheduler_type = SchedulerType::PRIOP;
@@ -10,7 +12,7 @@ System::System(string st, int q):
 	
 System::~System(){}
 
-TCB* System::scheduler_next(){
+void System::scheduler_next(){
 	// para o primeiro trabalho, as tarefas em espera
 	// so esperam o processador. portanto, aqui elas ja
 	// sao colocadas como prontas
@@ -58,8 +60,6 @@ TCB* System::scheduler_next(){
 			break;
 		}
 	}
-	
-	return current_task;
 }
 
 // tempo System::sys_clock(){}
@@ -97,7 +97,7 @@ void System::task_sleep(TCB* t){
 void System::run(){	
 	// se nao ha tarefa atual, elege uma
 	if(!current_task){
-		current_task = scheduler_next();
+		scheduler_next();
 		if(!current_task) return; // prevenir erros
 	}
 	
@@ -117,14 +117,14 @@ void System::run(){
 		if (it != ready.end()) {
 			ready.erase(it);
 		}
-		current_task = scheduler_next(); // seleciona a proxima tarefa a executar
+		scheduler_next(); // seleciona a proxima tarefa a executar
 	}
 	// se quantum encerrou, sai por preempcao
 	// excecao de FCFS que nao eh preemptivo
 	else if(current_quantum >= getQuantum() && scheduler_type != SchedulerType::FCFS){
 		// desativa a tarefa atual
 		task_sleep(current_task);
-		current_task = scheduler_next(); // seleciona a proxima tarefa a executar
+		scheduler_next(); // seleciona a proxima tarefa a executar
 	}
 }
 		

@@ -16,7 +16,6 @@ class TCB{
 		const int duration;
 		int priority;
 		queue<string> events;
-		// TCB pointer ou struct 
 		
 	public:
 		TCB(string ID = "None", int init = -1, int dur = -1, int prio = -1);

@@ -1,5 +1,6 @@
 #pragma once
 #include "TCB.h"
+#include "Clock.h"
 
 #include <vector>
 #include <algorithm>
@@ -17,12 +18,12 @@ class System{
 		const int quantum;
 		TCB* current_task;
 		int current_quantum;
-		// tempo*  global_clock
+		Clock* global_clock;
 		
 	public:
 		System(string st = "FCFS", int q = 2);
 		~System();
-		TCB* scheduler_next();
+		void scheduler_next();
 		// tempo sys_clock()
 		void interrupt();
 		void task_ready(TCB* t);

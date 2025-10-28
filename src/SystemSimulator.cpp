@@ -14,7 +14,7 @@ SystemSimulator* SystemSimulator::getSystemSimulator(){
 }
 
 SystemSimulator::~SystemSimulator(){
-
+	sim_type = SimulationType::PassoaPasso;
 }
 
 void SystemSimulator::Create(){
@@ -114,9 +114,26 @@ void SystemSimulator::run(){
 			
 		// APAGAR
 		cout << "tick: " << tempo_temporario;
+		
 		system->run();
+		
+		// FAZER		
+		// if(sim_type == SimulationType::PassoaPasso){
+			// grafico do tick atual
+		// }
 		
 		
 		tempo_temporario++;
+	}
+	
+	// gerar o grafico final
+}
+
+void SystemSimulator::setSimType(int st){
+	if (st == 1){
+		sim_type = SimulationType::PassoaPasso;
+	}
+	else{
+		sim_type = SimulationType::Completa;
 	}
 }
