@@ -4,6 +4,7 @@ SystemSimulator* SystemSimulator::instancia_SS(NULL);
 		
 SystemSimulator::SystemSimulator(){
 	config_path = CONF_FILE;
+	sim_type = SimulationType::PassoaPasso;
 }
 
 // Singleton
@@ -14,7 +15,6 @@ SystemSimulator* SystemSimulator::getSystemSimulator(){
 }
 
 SystemSimulator::~SystemSimulator(){
-	sim_type = SimulationType::PassoaPasso;
 }
 
 void SystemSimulator::Create(){
@@ -78,6 +78,9 @@ void SystemSimulator::create_system(){
 
 void SystemSimulator::run(){
 	
+	// passa as tarefas para gerar o grafico de gantt
+	gantt = new Gantt(sys_tasks);
+	
 	// apagar essa bomba depois
 	int tempo_temporario = 0;
 		
@@ -97,7 +100,7 @@ void SystemSimulator::run(){
 				if (tempo_temporario >= task->getIngressTime()){
 					system->task_ready(task);
 					// retira tarefa das remaining_tasks			
-					remaining_tasks.erase(it);
+					it = remaining_tasks.erase(it); // retorna o proximo iterador
 				}
 				else{ 
 					++it;
@@ -109,24 +112,29 @@ void SystemSimulator::run(){
 				// chama o escalonador para eleger a tarefa a executar
 				system->scheduler_next();
 			}
-
 		}
-			
-		// APAGAR
-		cout << "tick: " << tempo_temporario;
 		
 		system->run();
 		
-		// FAZER		
-		// if(sim_type == SimulationType::PassoaPasso){
-			// grafico do tick atual
-		// }
-		
+		// arrumar os tempos dessa bomba tb
+		TCB* cur = system->getCurTask();
+		// se tarefa executou, adiciona o intervalo de execucao para o grafico
+		if (cur) {
+			// cout << cur->getId() << "{ " << tempo_temporario << ", " << tempo_temporario + 1 << " }" << endl;
+			gantt->insertInterval(cur, tempo_temporario, tempo_temporario + 1);
+			
+			// se tipo de simulacao passo a passo, mostra o grafico atual
+			if(sim_type == SimulationType::PassoaPasso){
+			gantt->plotChart();
+			}
+		}
 		
 		tempo_temporario++;
 	}
 	
-	// gerar o grafico final
+	// gerar o grafico final em imagem
+	gantt->exportImg();
+	
 }
 
 void SystemSimulator::setSimType(int st){

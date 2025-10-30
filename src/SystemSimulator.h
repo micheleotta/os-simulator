@@ -1,5 +1,6 @@
 #pragma once
 #include "System.h"
+#include "Gantt.h"
 
 #include <fstream>
 #include <sstream>
@@ -13,6 +14,7 @@ enum class SimulationType {PassoaPasso, Completa};
 	 
 	 private:
 		System* system;
+		Gantt* gantt;
 		vector<TCB*> sys_tasks;
 		vector<TCB*> remaining_tasks;
 		string config_path;

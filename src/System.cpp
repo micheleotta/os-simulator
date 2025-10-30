@@ -19,47 +19,58 @@ void System::scheduler_next(){
 	for (const auto& waiting_task : waiting) {
         task_ready(waiting_task);
     }
+    waiting.clear();
     
     // reseta o quantum
     current_quantum = 0;
+    
+    // se não houver tarefas prontas, não escolhe nada
+    if (ready.empty()){
+        current_task = nullptr;
+        return;
+    }
+    
+    // escolhe conforme algoritmo
+    TCB* next_task = nullptr;
 	
 	// implementar algoritmos de escalonamento
 	switch(scheduler_type){
 		case SchedulerType::FCFS: {
 			// atender a ordem das tarefas prontas
-			current_task = ready.front();
+			next_task = ready.front();
 			break;
 		}
 		case SchedulerType::SRTF: {
 			// proximo a executar -> menor tempo restante
-			current_task = ready.front();
-			int min_time = current_task->getDuration() - current_task->getCurrentTime();
-			int remaining_time = 0;
+			next_task = ready.front();
+			int min_time = next_task->getDuration() - next_task->getCurrentTime();
 			for (const auto& task : ready) {
-				remaining_time = task->getDuration() - task->getCurrentTime();
+				int remaining_time = task->getDuration() - task->getCurrentTime();
 				if(remaining_time < min_time){
 					min_time = remaining_time;
-					current_task = task;
+					next_task = task;
 				}
 			}			
 			break;
 		}
 		case SchedulerType::PRIOP: {
 			// proximo a executar -> maior prioridade
-			current_task = ready.front();
+			next_task = ready.front();
 			for (const auto& task : ready) {
-				if(task->getPriority() > current_task->getPriority()){
-					current_task = task;
+				if(task->getPriority() > next_task->getPriority()){
+					next_task = task;
 				}
 			}
 			break;
 		}
 		default: {
 			// em default, retorna a primeira na fila de tarefas prontas
-			current_task = ready[0];
+			next_task = ready.front();
 			break;
 		}
 	}
+	
+	current_task = next_task;
 }
 
 // tempo System::sys_clock(){}
@@ -71,6 +82,9 @@ void System::interrupt(){
 void System::task_ready(TCB* t){
 	if (!t) return;
 	
+	// não re-adicionar tarefas já terminadas
+    if (t->getState() == States::Terminated) return;
+	
 	// retira t da lista waiting	
 	auto it = find(waiting.begin(), waiting.end(), t);
     if (it != waiting.end()) {
@@ -78,7 +92,12 @@ void System::task_ready(TCB* t){
     }
 	
 	// adiciona t a lista de prontas
-	ready.push_back(t);
+	t->setState(States::Ready);
+	// se ja nao esta em ready, adiciona
+	auto itr = find(ready.begin(), ready.end(), t);
+    if (itr == ready.end()) {
+        ready.push_back(t);
+    }
 }
 
 void System::task_sleep(TCB* t){
@@ -91,41 +110,43 @@ void System::task_sleep(TCB* t){
     }
     
 	// insere t na lista de waiting
+	t->setState(States::Waiting);
 	waiting.push_back(t);
 }
 
 void System::run(){	
-	// se nao ha tarefa atual, elege uma
-	if(!current_task){
+	
+	if(current_task){
+		// se tarefa ja executou tudo
+		if(current_task->getCurrentTime() >= current_task->getDuration()){
+			current_task->setState(States::Terminated); // estado de terminada
+			// retira tarefa da lista de prontas
+			auto it = find(ready.begin(), ready.end(), current_task);
+			if (it != ready.end()) {
+				ready.erase(it);
+			}
+			current_task = nullptr;
+			scheduler_next(); // seleciona prox tarefa a executar
+		}
+		// se quantum encerrou, sai por preempcao
+		// excecao de FCFS que nao eh preemptivo
+		else if(current_quantum >= getQuantum() && scheduler_type != SchedulerType::FCFS){
+			// desativa a tarefa atual
+			task_sleep(current_task);
+			current_task = NULL;
+			scheduler_next(); // seleciona prox tarefa a executar
+		}
+	}	
+	if(!current_task) { // se nao ha tarefa atual, elege uma
 		scheduler_next();
 		if(!current_task) return; // prevenir erros
 	}
 	
 	// roda a tarefa atual!
+	current_task->setState(States::Running);
 	// incrementa no current_time ++
 	current_task->setCurrentTime(current_task->getCurrentTime() + 1);
 	current_quantum++; // tambem incrementa considerando o quantum
-	// APAGAR
-	cout << " || tarefa: " << current_task->getId() << endl;
-
-	
-	// se tarefa ja executou tudo
-	if(current_task->getCurrentTime() == current_task->getDuration()){
-		current_task->setState(States::Terminated); // estado de terminada
-		// retira tarefa das lista de prontas
-		auto it = find(ready.begin(), ready.end(), current_task);
-		if (it != ready.end()) {
-			ready.erase(it);
-		}
-		scheduler_next(); // seleciona a proxima tarefa a executar
-	}
-	// se quantum encerrou, sai por preempcao
-	// excecao de FCFS que nao eh preemptivo
-	else if(current_quantum >= getQuantum() && scheduler_type != SchedulerType::FCFS){
-		// desativa a tarefa atual
-		task_sleep(current_task);
-		scheduler_next(); // seleciona a proxima tarefa a executar
-	}
 }
 		
 bool System::finished(){
