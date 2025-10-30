@@ -9,7 +9,9 @@ Gantt::Gantt(vector<TCB*> ts){
 	}
 }
 
-Gantt::~Gantt(){}
+Gantt::~Gantt(){
+	tasks.clear();
+}
 
 void Gantt::insertInterval(TCB* t, int s, int e){
 	// procura a tarefa passada
@@ -45,38 +47,40 @@ void Gantt::plotChart(){
 	cout << "======================" << endl;
     cout << "Ticks: " << total_time << endl;
 
-    // Imprime cada tarefa
+    // imprime cada tarefa
     for (int idx = (int)tasks.size() - 1; idx >= 0; --idx) {
         const auto &task = tasks[idx];
-        string color = COLORS[idx % COLORS.size()]; // mudar pra cor passada na task dps!!!
-        cout << (task.task)->getId() << ": ";
+        string color = COLORS[(task.task)->getColor() % COLORS.size()]; // seleciona a cor
+        cout << (task.task)->getId() << ": "; // mostra id da tarefa
 
         for (int t = 0; t < total_time; ++t) {
-            // antes de entrar no sistema = representa espaço
+            // antes de entrar no sistema = representada por espaço em branco
             int arrival = (task.task)->getIngressTime();
             if (t < arrival) {
                 cout << " ";
                 continue;
             }
             
-            // se tarefa ja foi terminada
-            if(t >= task.endtime) break;
+            // se tarefa ja foi terminada, nao imprimir mais
+            if(t >= task.endtime && (int)(task.intervals).size() == (task.task)->getDuration()) break;
 
             // após entrar no sistema
             bool running = false;
             for (auto &interval : task.intervals) {
                 if (t >= interval.start && t < interval.end) {
+                    // bool de em execucao
                     running = true;
                     break;
                 }
             }
 
             if (running){
-				// se executando, mostra a cor
+				// se executando = mostra a cor
                 cout << color << "█" << RESET; 
             }
             else {
-				// se aguardando para ser executada, quadrado opaco
+				// se ja entrou no sistema, mas esta aguardando 
+				// para ser executada = quadrado opaco
 				cout << "░"; 
 			}
         }
@@ -85,9 +89,8 @@ void Gantt::plotChart(){
     }	
 }
 
-void Gantt::exportImg(){
-	// nome do arquivo a ser exportado
-	string nome_arquivo = "simulacao.svg";
+void Gantt::exportImg(string file_name){
+	// gerar imagem do grafico 
 	
 	// dimensoes da imagem
     const int barHeight = 20;
@@ -112,12 +115,13 @@ void Gantt::exportImg(){
     };
 
 	// abrir o arquivo
-    ofstream svg(nome_arquivo);
+    ofstream svg(file_name);
     if (!svg.is_open()) {
         cerr << "Erro ao criar arquivo gantt.svg\n";
         return;
     }
 
+	// definicoes
     svg << "<svg xmlns='http://www.w3.org/2000/svg' width='" << width
         << "' height='" << height << "'>\n";
 
@@ -130,9 +134,9 @@ void Gantt::exportImg(){
     // desenha as tarefas
     for (int idx = (int)tasks.size() - 1, drawIdx = 0; idx >= 0; --idx, ++drawIdx) {
         const auto &task = tasks[idx];
-        string color = svgColors[idx % svgColors.size()]; // ALTERAR DEFINICAO DA COR
+        string color = svgColors[(task.task)->getColor() % svgColors.size()]; // selecionar a cor
         int y = margin + drawIdx * (barHeight + barSpacing);
-        int arrival = (task.task)->getIngressTime();
+        int arrival = (task.task)->getIngressTime(); // inicio
 
         // id da tarefa
         svg << "<text x='5' y='" << y + textOffset << "'>"
@@ -156,16 +160,23 @@ void Gantt::exportImg(){
         }
     }
 
-    // exibir os ticks
-    svg << "<g font-size='10' fill='#555'>\n";
+    // exibir os ticks -> ALTERAR PRO TEMPO CLOCK DPS
+    svg << "<g font-size='8' fill='#555'>\n";
     for (int t = 0; t <= total_time; ++t) {
         int x = margin + t * 20;
-        svg << "<text x='" << x << "' y='" << height - 10 << "'>" << t << "</text>\n";
+        
+        // linha vertical tracejada para melhor visualizacao intervalos
+        svg << "<line x1='" << x << "' y1='" << margin - 10
+            << "' x2='" << x << "' y2='" << height - margin / 2
+            << "' stroke='#ccc' stroke-width='0.5' stroke-dasharray='2,2'/>\n";
+        
+        // numero do tick    
+        svg << "<text x='" << x - 3 << "' y='" << height - 10 << "'>" << t << "</text>\n";
     }
     svg << "</g>\n";
 
     svg << "</svg>\n";
-    svg.close();
+    svg.close(); // fecha e salva o arquivo
 
-    cout << "Arquivo " << nome_arquivo << " gerado\n";
+    cout << "Arquivo " << file_name << " gerado\n";
 }

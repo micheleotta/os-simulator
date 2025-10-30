@@ -10,12 +10,18 @@ System::System(string st, int q):
 	else scheduler_type = SchedulerType::PRIOP;
 }
 	
-System::~System(){}
+System::~System(){
+	// destrutora
+	ready.clear();
+	waiting.clear();
+	current_task = nullptr;
+	global_clock = nullptr;
+}
 
 void System::scheduler_next(){
 	// para o primeiro trabalho, as tarefas em espera
 	// so esperam o processador. portanto, aqui elas ja
-	// sao colocadas como prontas
+	// sao colocadas como prontas novamente
 	for (const auto& waiting_task : waiting) {
         task_ready(waiting_task);
     }
@@ -30,10 +36,10 @@ void System::scheduler_next(){
         return;
     }
     
-    // escolhe conforme algoritmo
+    // escolhe a prox tarefa conforme algoritmo
     TCB* next_task = nullptr;
 	
-	// implementar algoritmos de escalonamento
+	// ]algoritmos de escalonamento
 	switch(scheduler_type){
 		case SchedulerType::FCFS: {
 			// atender a ordem das tarefas prontas
@@ -46,6 +52,7 @@ void System::scheduler_next(){
 			int min_time = next_task->getDuration() - next_task->getCurrentTime();
 			for (const auto& task : ready) {
 				int remaining_time = task->getDuration() - task->getCurrentTime();
+				// atualiza se o tempo restante < que tempo atual
 				if(remaining_time < min_time){
 					min_time = remaining_time;
 					next_task = task;
@@ -57,6 +64,7 @@ void System::scheduler_next(){
 			// proximo a executar -> maior prioridade
 			next_task = ready.front();
 			for (const auto& task : ready) {
+				// atualiza se prioridade > prioridade atual
 				if(task->getPriority() > next_task->getPriority()){
 					next_task = task;
 				}
@@ -80,6 +88,9 @@ void System::interrupt(){
 }
 		
 void System::task_ready(TCB* t){
+	// tarefa fica pronta
+	
+	// evitar erro
 	if (!t) return;
 	
 	// não re-adicionar tarefas já terminadas
@@ -92,15 +103,19 @@ void System::task_ready(TCB* t){
     }
 	
 	// adiciona t a lista de prontas
-	t->setState(States::Ready);
 	// se ja nao esta em ready, adiciona
 	auto itr = find(ready.begin(), ready.end(), t);
     if (itr == ready.end()) {
         ready.push_back(t);
     }
+    // atualiza estado
+    t->setState(States::Ready);
 }
 
 void System::task_sleep(TCB* t){
+	// quando tarefa eh suspensa
+	
+	// evitar erros, nao suspender quando o tipo eh FIFO
 	if (!t or scheduler_type == SchedulerType::FCFS) return;
 	
 	// retira t da lista de prontas
@@ -110,12 +125,14 @@ void System::task_sleep(TCB* t){
     }
     
 	// insere t na lista de waiting
-	t->setState(States::Waiting);
 	waiting.push_back(t);
+	// atualiza estado
+	t->setState(States::Waiting);
 }
 
 void System::run(){	
 	
+	// rodar tarefa	
 	if(current_task){
 		// se tarefa ja executou tudo
 		if(current_task->getCurrentTime() >= current_task->getDuration()){
@@ -133,10 +150,11 @@ void System::run(){
 		else if(current_quantum >= getQuantum() && scheduler_type != SchedulerType::FCFS){
 			// desativa a tarefa atual
 			task_sleep(current_task);
-			current_task = NULL;
+			current_task = nullptr;
 			scheduler_next(); // seleciona prox tarefa a executar
 		}
 	}	
+	
 	if(!current_task) { // se nao ha tarefa atual, elege uma
 		scheduler_next();
 		if(!current_task) return; // prevenir erros
@@ -150,13 +168,16 @@ void System::run(){
 }
 		
 bool System::finished(){
+	// sistema encerra quando nao ha mais tarefas a serem executadas
 	return waiting.empty() && ready.empty();
 }
 		
 int System::getQuantum(){
+	// retorna o quantum
 	return quantum;
 }
 
 TCB* System::getCurTask(){
+	// retorna a tarefa atual
 	return current_task;
 }

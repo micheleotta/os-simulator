@@ -42,5 +42,5 @@ class Gantt{
 		~Gantt();
 		void insertInterval(TCB* t, int s, int e);
 		void plotChart();
-		void exportImg();
+		void exportImg(string file_name = "simulacao.svg");
 };

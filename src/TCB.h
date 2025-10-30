@@ -10,7 +10,7 @@ class TCB{
 	private:
 		const string id;
 		States state;
-		// color
+		int color;
 		int ingress_time;
 		int current_time;
 		const int duration;
@@ -18,12 +18,13 @@ class TCB{
 		queue<string> events;
 		
 	public:
-		TCB(string ID = "None", int init = -1, int dur = -1, int prio = -1);
+		TCB(string ID = "None", int c = 0, int init = -1, int dur = -1, int prio = -1);
 		~TCB();
 		const string getId();
 		int getStateInt();
 		States getState();
 		void setState(States s);
+		int getColor();
 		int getIngressTime();
 		int getCurrentTime();
 		void setCurrentTime(int t);

@@ -3,7 +3,9 @@
 SystemSimulator* SystemSimulator::instancia_SS(NULL);
 		
 SystemSimulator::SystemSimulator(){
+	// define o caminho do arquivo .txt de configuracao
 	config_path = CONF_FILE;
+	// por padrao, deixa o tipo de simulacao passo a passo
 	sim_type = SimulationType::PassoaPasso;
 }
 
@@ -15,6 +17,15 @@ SystemSimulator* SystemSimulator::getSystemSimulator(){
 }
 
 SystemSimulator::~SystemSimulator(){
+	// destrutora
+	system = nullptr;
+	gantt = nullptr;
+	
+	for (int i = 0; i < (int)sys_tasks.size(); i++) {
+		delete(sys_tasks[i]);
+	}
+	sys_tasks.clear();
+	remaining_tasks.clear();
 }
 
 void SystemSimulator::Create(){
@@ -23,8 +34,10 @@ void SystemSimulator::Create(){
 }
 		
 void SystemSimulator::create_system(){
-	// Leitura do arquivo de configuracao 
+	
+	// leitura do arquivo de configuracao 
 	ifstream config_file(config_path);
+	// no caso de erro
     if (!config_file.is_open()) {
         cerr << "Error " << config_path << endl;
         return;
@@ -33,63 +46,66 @@ void SystemSimulator::create_system(){
 	string s;
 	string scheduler_type;
 	int quantum;
-	// Le a primeira linha com o algoritmo de escalonamento e o valor do quantum
+	// le a primeira linha com o algoritmo de escalonamento e o valor do quantum
 	if(getline(config_file, s)){
 		stringstream ss(s);
         getline(ss, scheduler_type, ';');
         ss >> quantum;
 	}
+	// cria sistema com o tipo de escalonamento e valor do quantum
 	system = new System(scheduler_type, quantum);
 	
 	TCB* new_task = NULL;
 	string id;
-	int ingress_time, duration, priority;
+	int color, ingress_time, duration, priority;
     string events;
-    // Le as linhas das tarefas
+    // le as linhas das tarefas
     while (getline(config_file, s)) {
         stringstream ss(s);
         getline(ss, id, ';');
-        // ss >> cor;
-        // ss.ignore(); // passa ';'
-        ss >> ingress_time;
+        ss >> color;
         ss.ignore(); // passa ';'
+        ss >> ingress_time;
+        ss.ignore();
         ss >> duration;
         ss.ignore();
         ss >> priority;
         
-        new_task = new TCB(id, ingress_time, duration, priority);
+        new_task = new TCB(id, color, ingress_time, duration, priority);
 
-		// Le os eventos
+		// le os eventos
         while (getline(ss, events, ';')) {
             if (!events.empty()){
-				// adicionar no queue task_events
+				// adicionar no queue task_events da tarefa
 				new_task->addEvent(events);
 			}
         }
         
-        // adiciona as tarefas na lista de tarefas do sistema
+        // adiciona as tarefas na lista de tarefas do SystemSimulator
         // e tambem nas tarefas ainda nao adicionadas ao sistema
         sys_tasks.push_back(new_task);
         remaining_tasks.push_back(new_task);
     }
 
+	// apos leitura, fecha o arquivo
     config_file.close();
 }
 
 void SystemSimulator::run(){
 	
-	// passa as tarefas para gerar o grafico de gantt
+	// passa todas as tarefas para gerar o grafico de gantt
 	gantt = new Gantt(sys_tasks);
 	
-	// apagar essa bomba depois
+	// apagar essa bomba depois -> CLOCK
 	int tempo_temporario = 0;
 		
+	// executar enquanto ainda ha tarefas para serem executadas
 	while(!system->finished() or !remaining_tasks.empty()){
 		
 		// checa se ainda ha tarefas a serem adicionadas no sistema
 		if(!remaining_tasks.empty()){
 			
-			// para comparar ao final se tarefas foram adicionadas ao sistema
+			// para comparar ao final se tarefas foram adicionadas ao sistema no tick atual
 			long unsigned int qtd_remaining = remaining_tasks.size();
 			
 			for (auto it = remaining_tasks.begin(); it != remaining_tasks.end();) {
@@ -108,15 +124,16 @@ void SystemSimulator::run(){
 			}
 			
 			if(qtd_remaining != remaining_tasks.size()){
-				// entrada de nova tarefa -> syscall
+				// se entrada de nova tarefa -> syscall
 				// chama o escalonador para eleger a tarefa a executar
 				system->scheduler_next();
 			}
 		}
 		
+		// chama o sistema para rodar a tarefa
 		system->run();
 		
-		// arrumar os tempos dessa bomba tb
+		// arrumar os tempos dessa bomba tb -> CLOCK
 		TCB* cur = system->getCurTask();
 		// se tarefa executou, adiciona o intervalo de execucao para o grafico
 		if (cur) {
@@ -125,19 +142,22 @@ void SystemSimulator::run(){
 			
 			// se tipo de simulacao passo a passo, mostra o grafico atual
 			if(sim_type == SimulationType::PassoaPasso){
-			gantt->plotChart();
+				gantt->plotChart();
 			}
 		}
 		
-		tempo_temporario++;
+		tempo_temporario++; // apagar arrumar com o CLOCK
 	}
 	
+	// mostra o resultado final
+	gantt->plotChart();
 	// gerar o grafico final em imagem
 	gantt->exportImg();
 	
 }
 
 void SystemSimulator::setSimType(int st){
+	// define o tipo de simulacao
 	if (st == 1){
 		sim_type = SimulationType::PassoaPasso;
 	}
