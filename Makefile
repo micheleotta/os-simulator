@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall
+CXXFLAGS = -std=c++17 -Wall -no-pie
 SRC = $(wildcard src/*.cpp)
 OBJ = $(SRC:.cpp=.o)
 TARGET = os_simulator
