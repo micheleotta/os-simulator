@@ -7,7 +7,7 @@
 #include <iostream>
 using namespace std;
 
-enum class SchedulerType {FCFS, SRTF, PRIOP};
+enum class SchedulerType {FIFO, SRTF, PRIOP};
 
 class System{
 	 

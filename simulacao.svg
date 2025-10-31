@@ -2,39 +2,39 @@
 <style>text{font-family:monospace;font-size:12px;fill:#333;}</style>
 <rect width='100%' height='100%' fill='white'/>
 <text x='5' y='55'>t05</text>
-<rect x='180' y='40' width='160' height='20' fill='#eeeeee' stroke='#aaa' stroke-width='0.5'/>
+<rect x='180' y='40' width='120' height='20' fill='#eeeeee' stroke='#aaa' stroke-width='0.5'/>
+<rect x='220' y='40' width='20' height='20' fill='#9b59b6' stroke='black' stroke-width='0.5'/>
+<rect x='240' y='40' width='20' height='20' fill='#9b59b6' stroke='black' stroke-width='0.5'/>
 <rect x='260' y='40' width='20' height='20' fill='#9b59b6' stroke='black' stroke-width='0.5'/>
 <rect x='280' y='40' width='20' height='20' fill='#9b59b6' stroke='black' stroke-width='0.5'/>
-<rect x='300' y='40' width='20' height='20' fill='#9b59b6' stroke='black' stroke-width='0.5'/>
-<rect x='320' y='40' width='20' height='20' fill='#9b59b6' stroke='black' stroke-width='0.5'/>
 <text x='5' y='85'>t04</text>
-<rect x='140' y='70' width='120' height='20' fill='#eeeeee' stroke='#aaa' stroke-width='0.5'/>
-<rect x='140' y='70' width='20' height='20' fill='#3498db' stroke='black' stroke-width='0.5'/>
-<rect x='160' y='70' width='20' height='20' fill='#3498db' stroke='black' stroke-width='0.5'/>
-<rect x='180' y='70' width='20' height='20' fill='#3498db' stroke='black' stroke-width='0.5'/>
-<rect x='200' y='70' width='20' height='20' fill='#3498db' stroke='black' stroke-width='0.5'/>
-<rect x='220' y='70' width='20' height='20' fill='#3498db' stroke='black' stroke-width='0.5'/>
-<rect x='240' y='70' width='20' height='20' fill='#3498db' stroke='black' stroke-width='0.5'/>
+<rect x='140' y='70' width='380' height='20' fill='#eeeeee' stroke='#aaa' stroke-width='0.5'/>
+<rect x='400' y='70' width='20' height='20' fill='#3498db' stroke='black' stroke-width='0.5'/>
+<rect x='420' y='70' width='20' height='20' fill='#3498db' stroke='black' stroke-width='0.5'/>
+<rect x='440' y='70' width='20' height='20' fill='#3498db' stroke='black' stroke-width='0.5'/>
+<rect x='460' y='70' width='20' height='20' fill='#3498db' stroke='black' stroke-width='0.5'/>
+<rect x='480' y='70' width='20' height='20' fill='#3498db' stroke='black' stroke-width='0.5'/>
+<rect x='500' y='70' width='20' height='20' fill='#3498db' stroke='black' stroke-width='0.5'/>
 <text x='5' y='115'>t03</text>
 <rect x='100' y='100' width='300' height='20' fill='#eeeeee' stroke='#aaa' stroke-width='0.5'/>
-<rect x='100' y='100' width='20' height='20' fill='#f1c40f' stroke='black' stroke-width='0.5'/>
-<rect x='120' y='100' width='20' height='20' fill='#f1c40f' stroke='black' stroke-width='0.5'/>
+<rect x='300' y='100' width='20' height='20' fill='#f1c40f' stroke='black' stroke-width='0.5'/>
+<rect x='320' y='100' width='20' height='20' fill='#f1c40f' stroke='black' stroke-width='0.5'/>
 <rect x='340' y='100' width='20' height='20' fill='#f1c40f' stroke='black' stroke-width='0.5'/>
 <rect x='360' y='100' width='20' height='20' fill='#f1c40f' stroke='black' stroke-width='0.5'/>
 <rect x='380' y='100' width='20' height='20' fill='#f1c40f' stroke='black' stroke-width='0.5'/>
 <text x='5' y='145'>t02</text>
-<rect x='40' y='130' width='380' height='20' fill='#eeeeee' stroke='#aaa' stroke-width='0.5'/>
+<rect x='40' y='130' width='80' height='20' fill='#eeeeee' stroke='#aaa' stroke-width='0.5'/>
 <rect x='40' y='130' width='20' height='20' fill='#27ae60' stroke='black' stroke-width='0.5'/>
 <rect x='60' y='130' width='20' height='20' fill='#27ae60' stroke='black' stroke-width='0.5'/>
 <rect x='80' y='130' width='20' height='20' fill='#27ae60' stroke='black' stroke-width='0.5'/>
-<rect x='400' y='130' width='20' height='20' fill='#27ae60' stroke='black' stroke-width='0.5'/>
+<rect x='100' y='130' width='20' height='20' fill='#27ae60' stroke='black' stroke-width='0.5'/>
 <text x='5' y='175'>t01</text>
-<rect x='40' y='160' width='480' height='20' fill='#eeeeee' stroke='#aaa' stroke-width='0.5'/>
-<rect x='420' y='160' width='20' height='20' fill='#e74c3c' stroke='black' stroke-width='0.5'/>
-<rect x='440' y='160' width='20' height='20' fill='#e74c3c' stroke='black' stroke-width='0.5'/>
-<rect x='460' y='160' width='20' height='20' fill='#e74c3c' stroke='black' stroke-width='0.5'/>
-<rect x='480' y='160' width='20' height='20' fill='#e74c3c' stroke='black' stroke-width='0.5'/>
-<rect x='500' y='160' width='20' height='20' fill='#e74c3c' stroke='black' stroke-width='0.5'/>
+<rect x='40' y='160' width='180' height='20' fill='#eeeeee' stroke='#aaa' stroke-width='0.5'/>
+<rect x='120' y='160' width='20' height='20' fill='#e74c3c' stroke='black' stroke-width='0.5'/>
+<rect x='140' y='160' width='20' height='20' fill='#e74c3c' stroke='black' stroke-width='0.5'/>
+<rect x='160' y='160' width='20' height='20' fill='#e74c3c' stroke='black' stroke-width='0.5'/>
+<rect x='180' y='160' width='20' height='20' fill='#e74c3c' stroke='black' stroke-width='0.5'/>
+<rect x='200' y='160' width='20' height='20' fill='#e74c3c' stroke='black' stroke-width='0.5'/>
 <g font-size='8' fill='#555'>
 <line x1='40' y1='30' x2='40' y2='210' stroke='#ccc' stroke-width='0.5' stroke-dasharray='2,2'/>
 <text x='37' y='220'>0</text>

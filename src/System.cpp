@@ -5,9 +5,9 @@ System::System(string st, int q):
 {
 	global_clock = new Clock();
 	
-	if (st == "FCFS") scheduler_type = SchedulerType::FCFS;
+	if (st == "PRIOP") scheduler_type = SchedulerType::PRIOP;
 	else if (st == "SRTF") scheduler_type = SchedulerType::SRTF;
-	else scheduler_type = SchedulerType::PRIOP;
+	else scheduler_type = SchedulerType::FIFO;
 }
 	
 System::~System(){
@@ -28,7 +28,7 @@ void System::scheduler_next(){
     waiting.clear();
     
     // reseta o quantum
-    current_quantum = 0;
+    // current_quantum = 0;
     
     // se não houver tarefas prontas, não escolhe nada
     if (ready.empty()){
@@ -41,8 +41,9 @@ void System::scheduler_next(){
 	
 	// ]algoritmos de escalonamento
 	switch(scheduler_type){
-		case SchedulerType::FCFS: {
+		case SchedulerType::FIFO: {
 			// atender a ordem das tarefas prontas
+			// com preempcao = Round Robin
 			next_task = ready.front();
 			break;
 		}
@@ -78,7 +79,12 @@ void System::scheduler_next(){
 		}
 	}
 	
-	current_task = next_task;
+	if (current_task != next_task){
+	    // reseta o quantum
+		current_quantum = 0;
+		// atualiza tarefa
+		current_task = next_task;
+	}
 }
 
 // tempo System::sys_clock(){}
@@ -115,8 +121,8 @@ void System::task_ready(TCB* t){
 void System::task_sleep(TCB* t){
 	// quando tarefa eh suspensa
 	
-	// evitar erros, nao suspender quando o tipo eh FIFO
-	if (!t or scheduler_type == SchedulerType::FCFS) return;
+	// evitar erros
+	if (!t) return;
 	
 	// retira t da lista de prontas
 	auto it = find(ready.begin(), ready.end(), t);
@@ -146,10 +152,12 @@ void System::run(){
 			scheduler_next(); // seleciona prox tarefa a executar
 		}
 		// se quantum encerrou, sai por preempcao
-		// excecao de FCFS que nao eh preemptivo
-		else if(current_quantum >= getQuantum() && scheduler_type != SchedulerType::FCFS){
+		else if(current_quantum >= getQuantum()){
 			// desativa a tarefa atual
 			task_sleep(current_task);
+			// nesse primeiro trabalho nao precisa esperar
+			// ja volta imediatamente para ready, mas ao final
+			task_ready(current_task);
 			current_task = nullptr;
 			scheduler_next(); // seleciona prox tarefa a executar
 		}
