@@ -1,13 +1,8 @@
 #include "System.h"
 
-System::System(string st, int q):
-	quantum(q), current_task(NULL), current_quantum(0)
-{
-	global_clock = new Clock();
-	
-	if (st == "PRIOP") scheduler_type = SchedulerType::PRIOP;
-	else if (st == "SRTF") scheduler_type = SchedulerType::SRTF;
-	else scheduler_type = SchedulerType::FIFO;
+System::System(string st, int q) : quantum(q), current_task(NULL), current_quantum(0)
+{	
+	define_scheduler_type (st);
 }
 	
 System::~System(){
@@ -15,8 +10,15 @@ System::~System(){
 	ready.clear();
 	waiting.clear();
 	current_task = nullptr;
-	global_clock = nullptr;
 }
+
+void System::define_scheduler_type(string st)
+{
+	if (st == "PRIOP") scheduler_type = SchedulerType::PRIOP;
+	else if (st == "SRTF") scheduler_type = SchedulerType::SRTF;
+	else scheduler_type = SchedulerType::FIFO;
+}
+
 
 void System::scheduler_next(){
 	// para o primeiro trabalho, as tarefas em espera
@@ -36,10 +38,8 @@ void System::scheduler_next(){
         return;
     }
     
-    // escolhe a prox tarefa conforme algoritmo
+    // escolhe a prox tarefa conforme algoritmo especificado
     TCB* next_task = nullptr;
-	
-	// ]algoritmos de escalonamento
 	switch(scheduler_type){
 		case SchedulerType::FIFO: {
 			// atender a ordem das tarefas prontas
@@ -73,7 +73,7 @@ void System::scheduler_next(){
 			break;
 		}
 		default: {
-			// em default, retorna a primeira na fila de tarefas prontas
+			// em default, retorna a primeira na fila de tarefas prontas (FIFO)
 			next_task = ready.front();
 			break;
 		}
@@ -86,16 +86,10 @@ void System::scheduler_next(){
 		current_task = next_task;
 	}
 }
-
-// tempo System::sys_clock(){}
-
-void System::interrupt(){
-	
-}
 		
 void System::task_ready(TCB* t){
-	// tarefa fica pronta
-	
+	// tarefa fica pronta para executar
+
 	// evitar erro
 	if (!t) return;
 	
@@ -136,7 +130,7 @@ void System::task_sleep(TCB* t){
 	t->setState(States::Waiting);
 }
 
-void System::run(){	
+void System::update(){	
 	
 	// rodar tarefa	
 	if(current_task){
@@ -174,7 +168,7 @@ void System::run(){
 	current_task->setCurrentTime(current_task->getCurrentTime() + 1);
 	current_quantum++; // tambem incrementa considerando o quantum
 }
-		
+
 bool System::finished(){
 	// sistema encerra quando nao ha mais tarefas a serem executadas
 	return waiting.empty() && ready.empty();

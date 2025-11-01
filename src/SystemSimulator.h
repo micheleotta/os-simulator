@@ -1,4 +1,5 @@
 #pragma once
+#include "SymClock.h"
 #include "System.h"
 #include "Gantt.h"
 
@@ -8,22 +9,24 @@
 
 #define CONF_FILE "conf.txt"
 
-enum class SimulationType {PassoaPasso, Completa};
+enum class SimulationType {DebugMode, Complete};
 
- class SystemSimulator{
+class SystemSimulator{
 	 
 	 private:
 		System* system;
 		Gantt* gantt;
-		vector<TCB*> sys_tasks;
-		vector<TCB*> remaining_tasks;
+		SymClock* m_clock;
+		vector<TCB*> sys_tasks;			//lista de tarefas indicadas
+		vector<TCB*> remaining_tasks;	//tarefas ainda não colocadas no sistema
 		string config_path;
 		SimulationType sim_type;
 		
 		// Singleton
 		SystemSimulator();
 		static SystemSimulator* instancia_SS;
-		void create_system();
+		bool create_system();
+		long unsigned int check_remaining_tasks(int time);
 		void run();
 		
 	public:

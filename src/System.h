@@ -1,34 +1,33 @@
 #pragma once
 #include "TCB.h"
-#include "Clock.h"
 
 #include <vector>
 #include <algorithm>
 #include <iostream>
 using namespace std;
 
+//algoritmos de escalonamento do sistema
 enum class SchedulerType {FIFO, SRTF, PRIOP};
 
 class System{
 	 
 	 private:
-		vector<TCB*> ready;
-		vector<TCB*> waiting;
+	 	const int quantum;
+		vector<TCB*> ready;		//tarefas prontas para execução
+		vector<TCB*> waiting;	//tarefas em suspensão
 		SchedulerType scheduler_type;
-		const int quantum;
 		TCB* current_task;
 		int current_quantum;
-		Clock* global_clock;
+
+		void define_scheduler_type (string st);
 		
 	public:
-		System(string st = "FCFS", int q = 2);
+		System(string st = "FCFS", int q = 2); //valores default
 		~System();
-		void scheduler_next();
-		// tempo sys_clock()
-		void interrupt();
+		void scheduler_next(); // chamada do escalonador
 		void task_ready(TCB* t);
 		void task_sleep(TCB* t);
-		void run();
+		void update();
 		bool finished();
 		int getQuantum();
 		TCB* getCurTask();
