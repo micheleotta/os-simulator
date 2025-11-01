@@ -32,6 +32,9 @@ SystemSimulator::~SystemSimulator(){
 }
 
 void SystemSimulator::Create(){
+
+	open_user_menu();
+
 	if (create_system())
 		run();
 	else
@@ -41,7 +44,8 @@ void SystemSimulator::Create(){
 bool SystemSimulator::create_system(){
 	
 	// leitura do arquivo de configuracao 
-	ifstream config_file(config_path);
+	//ifstream config_file(config_path);
+	ifstream config_file("teste.txt");
 	// no caso de erro
     if (!config_file.is_open()) {
         cerr << "Error opening:" << config_path << endl;
@@ -148,7 +152,7 @@ void SystemSimulator::run(){
 				}
 			}
 			
-			// chama o sistema para rodar a tarefa
+			// chama o sistema para rodar a tarefa atual
 			system->update();
 			
 			TCB* cur = system->getCurTask();
@@ -173,6 +177,117 @@ void SystemSimulator::run(){
 	// gerar o grafico final em imagem
 	gantt->exportImg();
 	
+}
+
+void SystemSimulator::open_user_menu(){
+
+	cout << " ============================================"
+	<< '\n' << "| Simulador de Sistema Operacional           |" << "\n"
+	<< " ============================================ \n";
+
+	ifstream config_file(config_path);
+	
+    if (config_file.is_open()){
+        cout << " Já existe um arquivo de configuração para a simulação em: " << config_path
+		<< ". \n Deseja sobrescrever o arquivo? [Y/N] \n";
+	}
+
+	char answer;
+	cin >> answer;
+
+	if (answer == 'Y') {
+		build_config_file();
+	}
+
+	//define o modo de simulação, por padrão é completa
+	cout << "\n =========== \n Qual modo de simulacao deve ser executado [C/D]?"
+	<< "\n  - C | Completo (default): mostra o resultado da simulação do sistema."
+	<< "\n  - D | Debugger: apresenta o passo a passo da simulação a cada tick. \n";
+
+	cin >> answer;
+	
+	if (answer == 'D'){
+		setSimType(1);
+	}
+
+}
+
+void SystemSimulator::build_config_file()
+{
+	//constroi um arquivo de configuração
+	ofstream config_file ("teste.txt");
+	string scheduler;
+	int quantum;
+
+	//pede ao usuário a configuração do sistema
+	cout << " Indique o algoritmo de escalonamento do sistema:" << "\n"
+		<< " - FIFO/RR (default)" << '\n' << " - SRTF" << '\n' << " - Prioridade Preemptivo" << '\n';
+	cin >> scheduler;
+	cout << "Indique o valor do quantum do sistema (Default = 2 ticks):" << "\n";
+	cin >> quantum;
+	
+	//escreve no arquivo os valores indicados
+	config_file << scheduler << ";" << quantum;
+
+	//indicação de tarefas
+	string input = "";
+	int id = 0;
+	int color = 0;
+	int i_time = 0;
+	int dur = 0;
+	int prio = 0;
+
+	cout << "\n ===== Criação de tarefas: =====" << "\n";
+
+	while (input != "ok"){
+		cout << "\n == Nova tarefa ";
+		//computa as entradas do usuario sobre a tarefa
+		cout << "\n - Tempo de ingresso: ";
+		cin >> i_time;
+		cout << " - Duracao: ";
+		cin >> dur;
+		cout << " - Prioridade: ";
+		cin >> prio;
+
+		//adiciona ao arquivo
+		config_file << '\n' << "t0" << id << ";"
+		<< color << ";" << i_time << ";" << dur << ";" << prio;
+
+		//adiciona eventos para cada tarefa
+		cout << "\n = Eventos da tarefa (conforme legenda): " 
+		<< "\n   - IO: operação de I/O em algum dispositivo externo"
+		<< "\n   - ML: mutex lock" << "\n   - MU: mutex unlock"
+		<< "\n Digite 'none' caso nao queira adicionar um novo evento ou 'new' para continuar \n";
+		
+		string ans = "";
+		cin >> ans;
+
+		cout << " !! Formato Mutex -> Evento:instante do evento";
+		cout << "\n Para I/0 -> Evento:inicio-duracao";
+		cout << "\n Exemplos: IO:1-2, ML:3, MU:4";
+		cout << "\n Atencao: os tempos sao relativos ao ingresso da tarefa no sistema!\n";
+
+		//se o usuario deseja criar um novo evento
+		while (ans != "none"){
+			string event;
+			cout << "== Novo evento: ";	
+			cin >> ans;
+			//adiciona o evento ao arquivo caso a resposta nao seja um pedido de saida
+			if (ans != "none"){
+				config_file << ";" << ans;
+			}
+		}
+
+		//atualiza id e cor
+		color++;
+		id++;
+
+		cout << "== Tarefa criada. \n Digite 'ok' para finalizar ou 'nova' para criar uma outra tarefa: ";
+		cin >> input;
+	}
+	//fecha o arquivo
+	config_file.close();
+
 }
 
 void SystemSimulator::setSimType(int st){

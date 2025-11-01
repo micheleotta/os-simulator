@@ -28,6 +28,8 @@ class SystemSimulator{
 		bool create_system();
 		long unsigned int check_remaining_tasks(int time);
 		void run();
+		void open_user_menu();
+		void build_config_file();
 		
 	public:
 		static SystemSimulator* getSystemSimulator();
