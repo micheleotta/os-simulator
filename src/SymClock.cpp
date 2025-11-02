@@ -34,6 +34,12 @@ bool SymClock::ticked(){
 	return false;
 }
 
+//sincroniza para modo debug
+void SymClock::sync()
+{
+	start_time = chrono::steady_clock::now();
+}
+
 const int SymClock::get_clock_period()
 {
     return period;

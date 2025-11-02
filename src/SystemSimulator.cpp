@@ -226,13 +226,14 @@ void SystemSimulator::open_user_menu(){
 	if (answer == 'D'){
 		cout << "\n Carregando simulação em modo Debug . . .\n";
 		setSimType(1);
+		cout << "Pressione 'enter' para avançar para o próximo tick";
 	}
 }
 
 void SystemSimulator::build_config_file()
 {
 	//constroi um arquivo de configuração para o sistema
-	ofstream config_file ("conf.txt");
+	ofstream config_file (config_path);
 	string scheduler;
 	int quantum;
 
@@ -315,7 +316,16 @@ bool SystemSimulator::valid_st(string st)
 //mostra as informações importantes das tarefas em cada tick
 void SystemSimulator::inform_debug_data(int tick)
 {
+	//espera usuario indicar que deseja passar o tick ou sair
+	fflush(stdin);
+	while (getchar() != '\n');
+	//sincroniza clock
+	m_clock->sync();
+	//mostra o grafico atual com as tarefas e as informacoes relevantes do sistema
+	cout << "\n======================" << endl;
+	cout << "Estado atual: \n";
 	gantt->plotChart(tick);
+	cout << "- Info:";
 	system->plot_tasks();
 }
 

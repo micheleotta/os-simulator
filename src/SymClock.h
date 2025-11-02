@@ -15,6 +15,7 @@ class SymClock{
 		SymClock();
 		~SymClock();
 		bool ticked();
+		void sync();
 		const int get_clock_period();
 		int get_simulation_time();
 };
