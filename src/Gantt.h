@@ -41,6 +41,6 @@ class Gantt{
 		Gantt(vector<TCB*> ts);
 		~Gantt();
 		void insertInterval(TCB* t, int s, int e);
-		void plotChart();
-		void exportImg(string file_name = "simulacao.svg");
+		void plotChart(int total_time);
+		void exportImg(int total_time, string file_name = "simulacao.svg");
 };

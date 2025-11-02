@@ -5,9 +5,9 @@ SystemSimulator* SystemSimulator::instancia_SS(NULL);
 SystemSimulator::SystemSimulator(){
 	m_clock = new SymClock();
 	// define o caminho do arquivo .txt de configuracao
-	config_path = CONF_FILE;
-	// por padrao, deixa o tipo de simulacao passo a passo
-	sim_type = SimulationType::DebugMode;
+	config_path = "conf.txt";
+	// por padrao, deixa o tipo de simulacao completo
+	sim_type = SimulationType::Complete;
 }
 
 // Singleton
@@ -44,8 +44,7 @@ void SystemSimulator::Create(){
 bool SystemSimulator::create_system(){
 	
 	// cria o sistema com base na leitura do arquivo de configuracao 
-	//ifstream config_file(config_path);
-	ifstream config_file("teste.txt");
+	ifstream config_file(config_path);
 	// no caso de erro
     if (!config_file.is_open()) {
         cerr << "Error opening:" << config_path << endl;
@@ -126,8 +125,7 @@ bool SystemSimulator::create_system(){
 
 // adiciona ao sistema tarefas que ingressam no instante de tempo 'time'
 void SystemSimulator::check_remaining_tasks(int time)
-{
-		
+{	
 	for (auto it = remaining_tasks.begin(); it != remaining_tasks.end();) {
 		TCB* task = *it;	
 		// se o tempo corresponde ao tempo de inicio da tarefa,
@@ -182,18 +180,19 @@ void SystemSimulator::run(){
 				}
 			}
 
-			//atualiza o tempo atual da simulação
+			// atualiza o tempo atual da simulação
 			time = m_clock -> get_simulation_time();
 		}
 	}
 	
 	// mostra so resultado final se a simulacao for do tipo completa
 	if (sim_type == SimulationType::Complete)
-		gantt->plotChart();
+		gantt->plotChart(time - 1);
 	// gerar o grafico final em imagem
-	gantt->exportImg();
+	gantt->exportImg(time - 1);
 	
 }
+
 
 // User Interface:
 
@@ -233,7 +232,7 @@ void SystemSimulator::open_user_menu(){
 void SystemSimulator::build_config_file()
 {
 	//constroi um arquivo de configuração para o sistema
-	ofstream config_file ("teste.txt");
+	ofstream config_file ("conf.txt");
 	string scheduler;
 	int quantum;
 
@@ -305,7 +304,6 @@ void SystemSimulator::build_config_file()
 	}
 	//fecha o arquivo
 	config_file.close();
-
 }
 
 bool SystemSimulator::valid_st(string st)
@@ -317,9 +315,8 @@ bool SystemSimulator::valid_st(string st)
 //mostra as informações importantes das tarefas em cada tick
 void SystemSimulator::inform_debug_data(int tick)
 {
-	gantt->plotChart();
+	gantt->plotChart(tick);
 	system->plot_tasks();
-
 }
 
 void SystemSimulator::setSimType(int st){

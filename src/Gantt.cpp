@@ -33,17 +33,9 @@ void Gantt::insertInterval(TCB* t, int s, int e){
     }
 }
 
-void Gantt::plotChart(){
+void Gantt::plotChart(int total_time){
 	// imprime o grafico atual
 	
-	// DEPOIS MUDAR PRO CLOCK!!!! -> current_time
-	// Determina o tempo total
-    int total_time = 0;
-    for (auto &t : tasks){
-        for (auto &i : t.intervals){
-            total_time = max(total_time, i.end);
-		}
-	}
 	cout << "======================" << endl;
     cout << "Ticks: " << total_time << endl;
 
@@ -89,7 +81,7 @@ void Gantt::plotChart(){
     }	
 }
 
-void Gantt::exportImg(string file_name){
+void Gantt::exportImg(int total_time, string file_name){
 	// gerar imagem do grafico 
 	
 	// dimensoes da imagem
@@ -97,12 +89,6 @@ void Gantt::exportImg(string file_name){
     const int barSpacing = 10;
     const int margin = 40;
     const int textOffset = 15;
-
-    // ALTERAR PELO CLOCK DPS
-    int total_time = 0;
-    for (auto &t : tasks)
-        for (auto &i : t.intervals)
-            total_time = max(total_time, i.end);
 
 	// tamanho da imagem
     int height = (int)tasks.size() * (barHeight + barSpacing) + margin * 2;

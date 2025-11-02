@@ -7,8 +7,6 @@
 #include <sstream>
 #include <string>
 
-#define CONF_FILE "conf.txt"
-
 enum class SimulationType {DebugMode, Complete};
 
 class SystemSimulator{

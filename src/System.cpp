@@ -29,9 +29,6 @@ void System::scheduler_next(){
     }
     waiting.clear();
     
-    // reseta o quantum
-    // current_quantum = 0;
-    
     // se não houver tarefas prontas, não escolhe nada
     if (ready.empty()){
         current_task = nullptr;
@@ -94,7 +91,7 @@ void System::task_ready(TCB* t){
 	if (!t) return;
 	
 	// não re-adicionar tarefas já terminadas
-    if (t->getState() == States::Terminated) return;
+    if (t->getState() == States::Terminated or t->getState() == States::Running) return;
 	
 	// retira t da lista waiting	
 	auto it = find(waiting.begin(), waiting.end(), t);
@@ -131,16 +128,21 @@ void System::task_sleep(TCB* t){
 
 void System::plot_tasks()
 {
+	if(finished()) return;
+	
 	cout << "\n";
 	cout << "NUMERO DE TASKS NO SISTEMA: " << (ready.size() + waiting.size());
 
 	cout << "\nTASK ATUAL: " << current_task->getId();
 
 	cout << "\nPRONTAS: ";
+	
+	if (ready.empty())
+		cout << "None";
 		
 	for (const auto& task : ready) {
 		if (task->getState() == Ready){
-			cout << '\n' << task->getId() << " (remaining time:" << 
+		cout << '\n' << task->getId() << " (remaining time:" << 
 			(task->getDuration() - task->getCurrentTime()) << ')';
 		}
 	}
@@ -148,7 +150,7 @@ void System::plot_tasks()
 	cout << "\nSUSPENSAS: ";
 
 	if (waiting.empty())
-		cout << "none";
+		cout << "None";
 
 	for (const auto& task : waiting) {
 		cout << 'n' << task->getId() << ' ';
