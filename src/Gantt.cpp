@@ -82,17 +82,23 @@ void Gantt::plotChart(int total_time){
 }
 
 void Gantt::exportImg(int total_time, string file_name){
-	// gerar imagem do grafico 
+	// gerar imagem do grafico em .SVG
 	
 	// dimensoes da imagem
     const int barHeight = 20;
     const int barSpacing = 10;
     const int margin = 40;
     const int textOffset = 15;
+    const int maxWidth = 2000;
+    
+     // define escala (pixels por unidade de tempo)
+    double scale = static_cast<double>(maxWidth) / total_time;
+    if (scale > 20.0) scale = 20.0; // limite máximo de zoom
+    if (scale < 0.5) scale = 0.5;   // limite mínimo (evita gráfico invisível)
 
 	// tamanho da imagem
     int height = (int)tasks.size() * (barHeight + barSpacing) + margin * 2;
-    int width = total_time * 20 + margin * 2;
+    int width = static_cast<int>(total_time * scale) + margin * 2;
 
 	// conversao das cores
     vector<string> svgColors = {
@@ -107,7 +113,7 @@ void Gantt::exportImg(int total_time, string file_name){
         return;
     }
 
-	// definicoes
+	// cabecalho SVG
     svg << "<svg xmlns='http://www.w3.org/2000/svg' width='" << width
         << "' height='" << height << "'>\n";
 
@@ -129,8 +135,8 @@ void Gantt::exportImg(int total_time, string file_name){
             << task.task->getId() << "</text>\n";
 
         // define intervalo total no sistema (chegada até última execução)
-        int wait_x = margin + arrival * 20;
-        int wait_w = (task.endtime - arrival) * 20;
+        int wait_x = margin + static_cast<int>(arrival * scale);
+        int wait_w = static_cast<int>((task.endtime - arrival) * scale);
 
         // tarefa esta no sistema aguardando -> cor cinza claro
         svg << "<rect x='" << wait_x << "' y='" << y << "' width='" << wait_w
@@ -138,18 +144,21 @@ void Gantt::exportImg(int total_time, string file_name){
 
         // tarefa em execução -> cor forte
         for (auto &interval : task.intervals) {
-            int x = margin + interval.start * 20;
-            int w = (interval.end - interval.start) * 20;
+            int x = margin + static_cast<int>(interval.start * scale);
+            int w = static_cast<int>((interval.end - interval.start) * scale);
             svg << "<rect x='" << x << "' y='" << y
                 << "' width='" << w << "' height='" << barHeight
                 << "' fill='" << color << "' stroke='black' stroke-width='0.5'/>\n";
         }
     }
 
-    // exibir os ticks -> ALTERAR PRO TEMPO CLOCK DPS
+    // exibir os ticks
     svg << "<g font-size='8' fill='#555'>\n";
+    int tick_step = (total_time > 200) ? (total_time / 50) : 1; // evita ticks demais
+    if (tick_step < 1) tick_step = 1;
+
     for (int t = 0; t <= total_time; ++t) {
-        int x = margin + t * 20;
+        int x = margin + static_cast<int>(t * scale);
         
         // linha vertical tracejada para melhor visualizacao intervalos
         svg << "<line x1='" << x << "' y1='" << margin - 10
