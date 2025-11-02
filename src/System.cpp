@@ -19,7 +19,7 @@ void System::define_scheduler_type(string st)
 	else scheduler_type = SchedulerType::FIFO;
 }
 
-
+//verificar aqui
 void System::scheduler_next(){
 	// para o primeiro trabalho, as tarefas em espera
 	// so esperam o processador. portanto, aqui elas ja
@@ -102,8 +102,7 @@ void System::task_ready(TCB* t){
         waiting.erase(it);
     }
 	
-	// adiciona t a lista de prontas
-	// se ja nao esta em ready, adiciona
+	// adiciona t a lista de prontas caso não esteja na lista
 	auto itr = find(ready.begin(), ready.end(), t);
     if (itr == ready.end()) {
         ready.push_back(t);
@@ -130,9 +129,38 @@ void System::task_sleep(TCB* t){
 	t->setState(States::Waiting);
 }
 
+void System::plot_tasks()
+{
+	cout << "\n";
+	cout << "NUMERO DE TASKS NO SISTEMA: " << (ready.size() + waiting.size());
+
+	cout << "\nTASK ATUAL: " << current_task->getId();
+
+	cout << "\nPRONTAS: ";
+		
+	for (const auto& task : ready) {
+		if (task->getState() == Ready){
+			cout << '\n' << task->getId() << " (remaining time:" << 
+			(task->getDuration() - task->getCurrentTime()) << ')';
+		}
+	}
+
+	cout << "\nSUSPENSAS: ";
+
+	if (waiting.empty())
+		cout << "none";
+
+	for (const auto& task : waiting) {
+		cout << 'n' << task->getId() << ' ';
+	}
+
+	cout << "\n";
+
+}
+
 void System::update(){	
 	
-	// rodar tarefa	
+	// rodar tarefa	se existe uma tarefa no 'processador'
 	if(current_task){
 		// se tarefa ja executou tudo
 		if(current_task->getCurrentTime() >= current_task->getDuration()){
@@ -148,16 +176,17 @@ void System::update(){
 		// se quantum encerrou, sai por preempcao
 		else if(current_quantum >= getQuantum()){
 			// desativa a tarefa atual
-			task_sleep(current_task);
+			task_sleep(current_task); //verificar
 			// nesse primeiro trabalho nao precisa esperar
-			// ja volta imediatamente para ready, mas ao final
+			// ja volta imediatamente para ready, mas ao final da lista
 			task_ready(current_task);
 			current_task = nullptr;
 			scheduler_next(); // seleciona prox tarefa a executar
 		}
 	}	
 	
-	if(!current_task) { // se nao ha tarefa atual, elege uma
+	// se nao ha tarefa atual, elege uma
+	if(!current_task) { 
 		scheduler_next();
 		if(!current_task) return; // prevenir erros
 	}

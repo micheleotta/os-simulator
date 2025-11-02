@@ -43,7 +43,7 @@ void SystemSimulator::Create(){
 		
 bool SystemSimulator::create_system(){
 	
-	// leitura do arquivo de configuracao 
+	// cria o sistema com base na leitura do arquivo de configuracao 
 	//ifstream config_file(config_path);
 	ifstream config_file("teste.txt");
 	// no caso de erro
@@ -54,7 +54,7 @@ bool SystemSimulator::create_system(){
     
 	string s;
 	string scheduler_type;
-	int quantum;
+	int quantum = 0;
 	// le a primeira linha com o algoritmo de escalonamento e o valor do quantum
 	if(getline(config_file, s)){
 		stringstream ss(s);
@@ -62,10 +62,24 @@ bool SystemSimulator::create_system(){
         	ss >> quantum;
 		//se nao forem informados os valores, retorna mensagem de erro
 		else {
-			cerr << "Error: Invalid input on config. archive! Please inform system quantum and scheduler type" << endl;
+			cerr << "Error: Invalid input on config. archive. \n Please inform scheduler type and system quantum to run the simulation." << endl;
 			return false;
 		}
 	}
+
+	//se o quantum não for informado ou for inválido (zero ou negativo)
+	if (quantum <= 0){
+		cerr <<  "Error: Please inform a valid system quantum.\n";
+		return false;
+	}
+
+	//se detectou um algoritmo invalido no arquivo retorna erro
+	if (!valid_st(scheduler_type)){
+		cerr << "Error: Unable to define scheduler algorithm informed at " << config_path
+		<< " \n System suports: FIFO, SRTF and PRIOP.\n";
+		return false;
+	}
+
 	// cria sistema com o tipo de escalonamento e valor do quantum
 	system = new System(scheduler_type, quantum);
 	
@@ -110,9 +124,9 @@ bool SystemSimulator::create_system(){
 	return true;
 }
 
-long unsigned int SystemSimulator::check_remaining_tasks(int time)
+// adiciona ao sistema tarefas que ingressam no instante de tempo 'time'
+void SystemSimulator::check_remaining_tasks(int time)
 {
-	long unsigned int qtd_remaining = remaining_tasks.size();
 		
 	for (auto it = remaining_tasks.begin(); it != remaining_tasks.end();) {
 		TCB* task = *it;	
@@ -126,8 +140,6 @@ long unsigned int SystemSimulator::check_remaining_tasks(int time)
 			else 
 				++it;
 	}
-
-	return qtd_remaining;
 }
 
 void SystemSimulator::run(){
@@ -136,15 +148,20 @@ void SystemSimulator::run(){
 	gantt = new Gantt(sys_tasks);
 	int time = m_clock -> get_simulation_time();
 
-	if (remaining_tasks.empty())
-		cout << "There are no tasks in the system";
+	//se nao foi especificada nenhuma task no arquivo retorna um erro
+	if (remaining_tasks.empty()){
+		cout << "There are no tasks in the system. Please check the config. file.\n";
+		return;
+	}
 	
 	// executar enquanto ainda ha tarefas para serem executadas
 	while(!system->finished() or !remaining_tasks.empty()){
+
 		if (m_clock -> ticked()){
+			//verifica primeiro se existem tarefas que precisam ser adicionadas ao sistema
 			if(!remaining_tasks.empty()){
-				// checa se ainda ha tarefas a serem adicionadas no sistema
-				long unsigned int qtd_remaining = check_remaining_tasks(time);
+				long unsigned int qtd_remaining = remaining_tasks.size();
+				check_remaining_tasks(time);
 				if(qtd_remaining != remaining_tasks.size()){
 					// se entrada de nova tarefa -> syscall
 					// chama o escalonador para eleger a tarefa a executar
@@ -154,16 +171,14 @@ void SystemSimulator::run(){
 			
 			// chama o sistema para rodar a tarefa atual
 			system->update();
-			
 			TCB* cur = system->getCurTask();
+
 			// se tarefa executou, adiciona o intervalo de execucao para o grafico
 			if (cur) {
-				// cout << cur->getId() << "{ " << tempo_temporario << ", " << tempo_temporario + 1 << " }" << endl;
 				gantt->insertInterval(cur, time, time + 1);
-				
 				// se tipo de simulacao passo a passo, mostra o grafico atual
 				if(sim_type == SimulationType::DebugMode){
-					gantt->plotChart();
+					inform_debug_data(time);
 				}
 			}
 
@@ -172,12 +187,15 @@ void SystemSimulator::run(){
 		}
 	}
 	
-	// mostra o resultado final
-	gantt->plotChart();
+	// mostra so resultado final se a simulacao for do tipo completa
+	if (sim_type == SimulationType::Complete)
+		gantt->plotChart();
 	// gerar o grafico final em imagem
 	gantt->exportImg();
 	
 }
+
+// User Interface:
 
 void SystemSimulator::open_user_menu(){
 
@@ -207,21 +225,21 @@ void SystemSimulator::open_user_menu(){
 	cin >> answer;
 	
 	if (answer == 'D'){
+		cout << "\n Carregando simulação em modo Debug . . .\n";
 		setSimType(1);
 	}
-
 }
 
 void SystemSimulator::build_config_file()
 {
-	//constroi um arquivo de configuração
+	//constroi um arquivo de configuração para o sistema
 	ofstream config_file ("teste.txt");
 	string scheduler;
 	int quantum;
 
 	//pede ao usuário a configuração do sistema
 	cout << " Indique o algoritmo de escalonamento do sistema:" << "\n"
-		<< " - FIFO/RR (default)" << '\n' << " - SRTF" << '\n' << " - Prioridade Preemptivo" << '\n';
+		<< " - FIFO/RR (default)" << '\n' << " - SRTF" << '\n' << " - PRIOP (Prioridade Preemptivo)" << '\n';
 	cin >> scheduler;
 	cout << "Indique o valor do quantum do sistema (Default = 2 ticks):" << "\n";
 	cin >> quantum;
@@ -287,6 +305,20 @@ void SystemSimulator::build_config_file()
 	}
 	//fecha o arquivo
 	config_file.close();
+
+}
+
+bool SystemSimulator::valid_st(string st)
+{
+	//strings de algoritmos validos para o escalonador
+	return (st == "FIFO" || st == "SRTF" || st == "PRIOP");
+}
+
+//mostra as informações importantes das tarefas em cada tick
+void SystemSimulator::inform_debug_data(int tick)
+{
+	gantt->plotChart();
+	system->plot_tasks();
 
 }
 

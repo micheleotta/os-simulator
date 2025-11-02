@@ -26,10 +26,12 @@ class SystemSimulator{
 		SystemSimulator();
 		static SystemSimulator* instancia_SS;
 		bool create_system();
-		long unsigned int check_remaining_tasks(int time);
+		void check_remaining_tasks(int time);
 		void run();
 		void open_user_menu();
 		void build_config_file();
+		bool valid_st (string st);
+		void inform_debug_data(int tick);
 		
 	public:
 		static SystemSimulator* getSystemSimulator();
