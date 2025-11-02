@@ -1,13 +1,8 @@
 #include "System.h"
 
-System::System(string st, int q):
-	quantum(q), current_task(NULL), current_quantum(0)
-{
-	global_clock = new Clock();
-	
-	if (st == "PRIOP") scheduler_type = SchedulerType::PRIOP;
-	else if (st == "SRTF") scheduler_type = SchedulerType::SRTF;
-	else scheduler_type = SchedulerType::FIFO;
+System::System(string st, int q) : quantum(q), current_task(NULL), current_quantum(0)
+{	
+	define_scheduler_type (st);
 }
 	
 System::~System(){
@@ -15,9 +10,16 @@ System::~System(){
 	ready.clear();
 	waiting.clear();
 	current_task = nullptr;
-	global_clock = nullptr;
 }
 
+void System::define_scheduler_type(string st)
+{
+	if (st == "PRIOP") scheduler_type = SchedulerType::PRIOP;
+	else if (st == "SRTF") scheduler_type = SchedulerType::SRTF;
+	else scheduler_type = SchedulerType::FIFO;
+}
+
+//verificar aqui
 void System::scheduler_next(){
 	// para o primeiro trabalho, as tarefas em espera
 	// so esperam o processador. portanto, aqui elas ja
@@ -36,10 +38,8 @@ void System::scheduler_next(){
         return;
     }
     
-    // escolhe a prox tarefa conforme algoritmo
+    // escolhe a prox tarefa conforme algoritmo especificado
     TCB* next_task = nullptr;
-	
-	// ]algoritmos de escalonamento
 	switch(scheduler_type){
 		case SchedulerType::FIFO: {
 			// atender a ordem das tarefas prontas
@@ -73,7 +73,7 @@ void System::scheduler_next(){
 			break;
 		}
 		default: {
-			// em default, retorna a primeira na fila de tarefas prontas
+			// em default, retorna a primeira na fila de tarefas prontas (FIFO)
 			next_task = ready.front();
 			break;
 		}
@@ -86,16 +86,10 @@ void System::scheduler_next(){
 		current_task = next_task;
 	}
 }
-
-// tempo System::sys_clock(){}
-
-void System::interrupt(){
-	
-}
 		
 void System::task_ready(TCB* t){
-	// tarefa fica pronta
-	
+	// tarefa fica pronta para executar
+
 	// evitar erro
 	if (!t) return;
 	
@@ -108,8 +102,7 @@ void System::task_ready(TCB* t){
         waiting.erase(it);
     }
 	
-	// adiciona t a lista de prontas
-	// se ja nao esta em ready, adiciona
+	// adiciona t a lista de prontas caso não esteja na lista
 	auto itr = find(ready.begin(), ready.end(), t);
     if (itr == ready.end()) {
         ready.push_back(t);
@@ -136,9 +129,38 @@ void System::task_sleep(TCB* t){
 	t->setState(States::Waiting);
 }
 
-void System::run(){	
+void System::plot_tasks()
+{
+	cout << "\n";
+	cout << "NUMERO DE TASKS NO SISTEMA: " << (ready.size() + waiting.size());
+
+	cout << "\nTASK ATUAL: " << current_task->getId();
+
+	cout << "\nPRONTAS: ";
+		
+	for (const auto& task : ready) {
+		if (task->getState() == Ready){
+			cout << '\n' << task->getId() << " (remaining time:" << 
+			(task->getDuration() - task->getCurrentTime()) << ')';
+		}
+	}
+
+	cout << "\nSUSPENSAS: ";
+
+	if (waiting.empty())
+		cout << "none";
+
+	for (const auto& task : waiting) {
+		cout << 'n' << task->getId() << ' ';
+	}
+
+	cout << "\n";
+
+}
+
+void System::update(){	
 	
-	// rodar tarefa	
+	// rodar tarefa	se existe uma tarefa no 'processador'
 	if(current_task){
 		// se tarefa ja executou tudo
 		if(current_task->getCurrentTime() >= current_task->getDuration()){
@@ -154,16 +176,17 @@ void System::run(){
 		// se quantum encerrou, sai por preempcao
 		else if(current_quantum >= getQuantum()){
 			// desativa a tarefa atual
-			task_sleep(current_task);
+			task_sleep(current_task); //verificar
 			// nesse primeiro trabalho nao precisa esperar
-			// ja volta imediatamente para ready, mas ao final
+			// ja volta imediatamente para ready, mas ao final da lista
 			task_ready(current_task);
 			current_task = nullptr;
 			scheduler_next(); // seleciona prox tarefa a executar
 		}
 	}	
 	
-	if(!current_task) { // se nao ha tarefa atual, elege uma
+	// se nao ha tarefa atual, elege uma
+	if(!current_task) { 
 		scheduler_next();
 		if(!current_task) return; // prevenir erros
 	}
@@ -174,7 +197,7 @@ void System::run(){
 	current_task->setCurrentTime(current_task->getCurrentTime() + 1);
 	current_quantum++; // tambem incrementa considerando o quantum
 }
-		
+
 bool System::finished(){
 	// sistema encerra quando nao ha mais tarefas a serem executadas
 	return waiting.empty() && ready.empty();
