@@ -61,14 +61,14 @@ bool SystemSimulator::create_system(){
         	ss >> quantum;
 		//se nao forem informados os valores, retorna mensagem de erro
 		else {
-			cerr << "Error: Invalid input on config. archive. \n Please inform scheduler type and system quantum to run the simulation." << endl;
+			cerr << "\nError: Invalid input on config. archive. \n Please inform scheduler type and system quantum to run the simulation." << endl;
 			return false;
 		}
 	}
 
 	//se o quantum não for informado ou for inválido (zero ou negativo)
 	if (quantum <= 0){
-		cerr <<  "Error: Please inform a valid system quantum.\n";
+		cerr <<  "\nError: Please inform a valid system quantum.\n";
 		return false;
 	}
 
@@ -207,17 +207,21 @@ void SystemSimulator::open_user_menu(){
 	<< " ============================================ \n";
 
 	ifstream config_file(config_path);
+	char answer;
 	
-    if (config_file.is_open()){
-        cout << " Já existe um arquivo de configuração para a simulação em: " << config_path
-		<< ". \n Deseja sobrescrever o arquivo? [Y/N] \n";
+    if (!config_file.is_open()){
+		build_config_file();
 	}
 
-	char answer;
-	cin >> answer;
+    else {
+    	cout << " Já existe um arquivo de configuração para a simulação em: " << config_path
+		<< ". \n Deseja sobrescrever o arquivo? [Y/N] \n";
 
-	if (answer == 'Y') {
-		build_config_file();
+		cin >> answer;
+
+		if (answer == 'Y') {
+			build_config_file();
+		}
 	}
 
 	//define o modo de simulação, por padrão é completa
