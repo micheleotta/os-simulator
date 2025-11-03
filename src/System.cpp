@@ -128,7 +128,10 @@ void System::task_sleep(TCB* t){
 
 void System::plot_tasks()
 {
-	if(finished()) return;
+	if (finished()){
+		cout << "\nFIM DA EXECUCAO" << "\nNENHUMA TASK NO SISTEMA";
+		return;
+	}
 	
 	cout << "\n";
 	cout << "NUMERO DE TASKS NO SISTEMA: " << (ready.size() + waiting.size());

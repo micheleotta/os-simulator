@@ -247,7 +247,7 @@ void SystemSimulator::build_config_file()
 
 	//pede ao usuário a configuração do sistema
 	cout << " Indique o algoritmo de escalonamento do sistema:" << "\n"
-		<< " - FIFO/RR (default)" << '\n' << " - SRTF" << '\n' << " - PRIOP (Prioridade Preemptivo)" << '\n';
+		<< " - FIFO (default)" << '\n' << " - SRTF" << '\n' << " - PRIOP (Prioridade Preemptivo)" << '\n';
 	cin >> scheduler;
 	cout << "Indique o valor do quantum do sistema (Default = 2 ticks):" << "\n";
 	cin >> quantum;
