@@ -173,5 +173,5 @@ void Gantt::exportImg(int total_time, string file_name){
     svg << "</svg>\n";
     svg.close(); // fecha e salva o arquivo
 
-    cout << "Arquivo " << file_name << " gerado\n";
+    cout << "\nArquivo " << file_name << " gerado\n";
 }

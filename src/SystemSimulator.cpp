@@ -185,9 +185,13 @@ void SystemSimulator::run(){
 		}
 	}
 	
-	// mostra so resultado final se a simulacao for do tipo completa
-	if (sim_type == SimulationType::Complete)
+	// mostra os resultados finais
+	// o tempo é informado -1 pois demora um tick para a verificação
+	if (sim_type == SimulationType::DebugMode)
+		inform_debug_data(time - 1);
+	else 
 		gantt->plotChart(time - 1);
+
 	// gerar o grafico final em imagem
 	gantt->exportImg(time - 1);
 	

@@ -156,8 +156,6 @@ void System::plot_tasks()
 		cout << 'n' << task->getId() << ' ';
 	}
 
-	cout << "\n";
-
 }
 
 void System::update(){	
