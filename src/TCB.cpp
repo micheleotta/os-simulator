@@ -1,6 +1,6 @@
 #include "TCB.h"
  
-TCB::TCB(string ID, int c, int init, int dur, int prio):
+TCB::TCB(string ID, string c, int init, int dur, int prio):
 	id(ID), duration(dur)
 {
 	// cria tarefa com os dados correspondentes
@@ -37,7 +37,7 @@ void TCB::setState(States s){
 	state = s;
 }
 
-int TCB::getColor(){
+string TCB::getColor(){
 	// retorna a cor da tarefa
 	return color;
 }

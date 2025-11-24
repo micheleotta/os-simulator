@@ -83,21 +83,22 @@ bool SystemSimulator::create_system(){
 	system = new System(scheduler_type, quantum);
 	
 	TCB* new_task = NULL;
-	string id;
-	int color, ingress_time, duration, priority;
+	string id, color;
+	int ingress_time, duration, priority;
     string events;
     // le as linhas das tarefas
     while (getline(config_file, s)) {
         stringstream ss(s);
         getline(ss, id, ';');
-        ss >> color;
-        ss.ignore(); // ignora ';'
-        ss >> ingress_time;
-        ss.ignore();
-        ss >> duration;
-        ss.ignore();
-        ss >> priority;
-        
+        getline(ss, color, ';');
+		getline(ss, s, ';'); 
+		ingress_time = stoi(s);
+		getline(ss, s, ';'); 
+		duration = stoi(s);
+		getline(ss, s, ';'); 
+		priority = stoi(s);
+
+        cout << "tarefa: " << id << " cor: " << color << " ingresso: " << ingress_time << " duracao: " << duration << " prioridade: " << priority;
         new_task = new TCB(id, color, ingress_time, duration, priority);
 
 		// le os eventos
@@ -160,10 +161,11 @@ void SystemSimulator::run(){
 			if(!remaining_tasks.empty()){
 				long unsigned int qtd_remaining = remaining_tasks.size();
 				check_remaining_tasks(time);
-				if(qtd_remaining != remaining_tasks.size()){
+				if(qtd_remaining != remaining_tasks.size() && system->get_scheduler_type() != SchedulerType::FIFO){
 					// se entrada de nova tarefa -> syscall
 					// chama o escalonador para eleger a tarefa a executar
-					system->scheduler_next();
+					// system->scheduler_next();
+					system->set_call_scheduler(true);
 				}
 			}
 			
@@ -190,10 +192,10 @@ void SystemSimulator::run(){
 	if (sim_type == SimulationType::DebugMode)
 		inform_debug_data(time - 1);
 	else 
-		gantt->plotChart(time - 1);
+		gantt->plotChart(time - 1, system->get_scheduler_name());
 
 	// gerar o grafico final em imagem
-	gantt->exportImg(time - 1);
+	gantt->exportImg(time - 1, system->get_scheduler_name());
 	
 }
 
@@ -258,7 +260,7 @@ void SystemSimulator::build_config_file()
 	//indicação de tarefas
 	string input = "";
 	int id = 0;
-	int color = 0;
+	string color = "F0E0D0";
 	int i_time = 0;
 	int dur = 0;
 	int prio = 0;
@@ -305,8 +307,12 @@ void SystemSimulator::build_config_file()
 		}
 
 		//atualiza id e cor
-		color++;
 		id++;
+		
+		// cor RGB baseada no id
+		stringstream ss;
+		ss << "R" << (id * 70) % 256 << "G" << (id * 150) % 256 << "B" << (id * 200) % 256;
+		color = ss.str(); 
 
 		cout << "== Tarefa criada. \n Digite 'ok' para finalizar ou 'nova' para criar uma outra tarefa: ";
 		cin >> input;
@@ -317,7 +323,7 @@ void SystemSimulator::build_config_file()
 
 bool SystemSimulator::valid_st(string st)
 {
-	//strings de algoritmos validos para o escalonador
+	// strings de algoritmos validos para o escalonador
 	return (st == "FIFO" || st == "SRTF" || st == "PRIOP");
 }
 
@@ -332,7 +338,7 @@ void SystemSimulator::inform_debug_data(int tick)
 	//mostra o grafico atual com as tarefas e as informacoes relevantes do sistema
 	cout << "\n======================" << endl;
 	cout << "Estado atual: \n";
-	gantt->plotChart(tick);
+	gantt->plotChart(tick, system->get_scheduler_name());
 	cout << "- Info:";
 	system->plot_tasks();
 }

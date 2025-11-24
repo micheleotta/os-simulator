@@ -33,16 +33,26 @@ void Gantt::insertInterval(TCB* t, int s, int e){
     }
 }
 
-void Gantt::plotChart(int total_time){
+void Gantt::plotChart(int total_time, string type){
 	// imprime o grafico atual
 	
 	cout << "======================" << endl;
+	cout << "Type: " << type << endl;
     cout << "Ticks: " << total_time << endl;
 
     // imprime cada tarefa
     for (int idx = (int)tasks.size() - 1; idx >= 0; --idx) {
         const auto &task = tasks[idx];
-        string color = COLORS[(task.task)->getColor() % COLORS.size()]; // seleciona a cor
+        // string color = COLORS[(task.task)->getColor() % COLORS.size()]; // seleciona a cor
+        string rgb = task.task->getColor(); // "R255G255B255"
+		int r = stoi(rgb.substr(rgb.find('R') + 1, rgb.find('G') - (rgb.find('R') + 1)));
+		int g = stoi(rgb.substr(rgb.find('G') + 1, rgb.find('B') - (rgb.find('G') + 1)));
+		int b = stoi(rgb.substr(rgb.find('B') + 1));
+		string color = "\033[38;2;" +
+					   std::to_string(r) + ";" +
+					   std::to_string(g) + ";" +
+					   std::to_string(b) + "m";
+               
         cout << (task.task)->getId() << ": "; // mostra id da tarefa
 
         for (int t = 0; t < total_time; ++t) {
@@ -81,8 +91,10 @@ void Gantt::plotChart(int total_time){
     }	
 }
 
-void Gantt::exportImg(int total_time, string file_name){
+void Gantt::exportImg(int total_time, string type, string file_name){
 	// gerar imagem do grafico em .SVG
+	file_name += type;
+	file_name += ".svg";
 	
 	// dimensoes da imagem
     const int barHeight = 20;
@@ -100,12 +112,6 @@ void Gantt::exportImg(int total_time, string file_name){
     int height = (int)tasks.size() * (barHeight + barSpacing) + margin * 2;
     int width = static_cast<int>(total_time * scale) + margin * 2;
 
-	// conversao das cores
-    vector<string> svgColors = {
-        "#e74c3c", "#27ae60", "#f1c40f", "#3498db",
-        "#9b59b6", "#16a085", "#bdc3c7"
-    };
-
 	// abrir o arquivo
     ofstream svg(file_name);
     if (!svg.is_open()) {
@@ -122,11 +128,17 @@ void Gantt::exportImg(int total_time, string file_name){
         << "</style>\n";
 
     svg << "<rect width='100%' height='100%' fill='white'/>\n";
+    
+    // escreve o tipo do escalonador
+    svg << "<text x='" << margin << "' y='20' "
+    << "font-size='18' font-family='monospace' fill='#000'>"
+    << type << "</text>\n";
 
     // desenha as tarefas
     for (int idx = (int)tasks.size() - 1, drawIdx = 0; idx >= 0; --idx, ++drawIdx) {
         const auto &task = tasks[idx];
-        string color = svgColors[(task.task)->getColor() % svgColors.size()]; // selecionar a cor
+        // string color = svgColors[(task.task)->getColor() % svgColors.size()]; // selecionar a cor
+        string color = rgbToSvg((task.task)->getColor());
         int y = margin + drawIdx * (barHeight + barSpacing);
         int arrival = (task.task)->getIngressTime(); // inicio
 
@@ -175,3 +187,21 @@ void Gantt::exportImg(int total_time, string file_name){
 
     cout << "\n\nArquivo " << file_name << " gerado\n";
 }
+
+string Gantt::rgbToSvg(const string& rgb)
+{
+    auto getVal = [&](char c1, char c2){
+        size_t start = rgb.find(c1) + 1;
+        size_t end = rgb.find(c2);
+        return stoi(rgb.substr(start, end - start));
+    };
+
+    int r = getVal('R','G');
+    int g = getVal('G','B');
+    int b = stoi(rgb.substr(rgb.find('B') + 1));
+
+    stringstream ss;
+    ss << "rgb(" << r << "," << g << "," << b << ")";
+    return ss.str();
+}
+

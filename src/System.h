@@ -15,6 +15,7 @@ class System{
 	 	const int quantum;
 		vector<TCB*> ready;		//tarefas prontas para execução
 		vector<TCB*> waiting;	//tarefas em suspensão
+		bool call_scheduler;
 		SchedulerType scheduler_type;
 		TCB* current_task;
 		int current_quantum;
@@ -34,4 +35,7 @@ class System{
 		void task_ready(TCB* t);
 		void task_sleep(TCB* t);
 		void plot_tasks();
+		SchedulerType get_scheduler_type();
+		string get_scheduler_name();
+		void set_call_scheduler(bool c);
 };
