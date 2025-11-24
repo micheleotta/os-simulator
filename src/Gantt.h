@@ -21,16 +21,6 @@ struct TaskInfo {
     int endtime;
 };
 
-// Códigos de cores ANSI (funcionam no Linux, macOS e Windows 10+)
-const vector<string> COLORS = {
-    "\033[31m", // vermelho
-    "\033[32m", // verde
-    "\033[33m", // amarelo
-    "\033[34m", // azul
-    "\033[35m", // magenta
-    "\033[36m", // ciano
-    "\033[37m"  // branco
-};
 const string RESET = "\033[0m";
 
 class Gantt{ 
@@ -41,6 +31,7 @@ class Gantt{
 		Gantt(vector<TCB*> ts);
 		~Gantt();
 		void insertInterval(TCB* t, int s, int e);
-		void plotChart(int total_time);
-		void exportImg(int total_time, string file_name = "simulacao.svg");
+		void plotChart(int total_time, string type);
+		void exportImg(int total_time, string type = "", string file_name = "simulacao_");
+		string rgbToSvg(const string& rgb);
 };
