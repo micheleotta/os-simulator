@@ -174,7 +174,7 @@ void System::plot_tasks()
 	}
 	
 	cout << "\n";
-	cout << "NUMERO DE TASKS NO SISTEMA: " << (ready.size() + waiting.size());
+	cout << "NUMERO DE TASKS NO SISTEMA: " << (ready.size() + waiting.size() + 1);
 
 	// imprime task atual e suas informacoes
 	cout << "\nTASK ATUAL: " << current_task->getId() 
