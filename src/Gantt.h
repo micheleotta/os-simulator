@@ -33,5 +33,4 @@ class Gantt{
 		void insertInterval(TCB* t, int s, int e);
 		void plotChart(int total_time, string type);
 		void exportImg(int total_time, string type = "", string file_name = "simulacao_");
-		string rgbToSvg(const string& rgb);
 };

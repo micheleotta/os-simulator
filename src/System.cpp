@@ -1,9 +1,10 @@
 #include "System.h"
 
-System::System(string st, int q) : quantum(q), current_task(NULL), current_quantum(0)
+System::System(string st, int q, int a) : quantum(q), alpha(a), current_task(NULL), current_quantum(0)
 {	
 	define_scheduler_type (st);
 	call_scheduler = false;
+	call_aging = false;
 }
 	
 System::~System(){
@@ -17,11 +18,11 @@ void System::define_scheduler_type(string st)
 {
 	if (st == "PRIOP") scheduler_type = SchedulerType::PRIOP;
 	else if (st == "SRTF") scheduler_type = SchedulerType::SRTF;
+	else if (st == "PRIOPEnv") scheduler_type = SchedulerType::PRIOPEnv;
 	else scheduler_type = SchedulerType::FIFO;
 }
 
-//verificar aqui
-void System::scheduler_next(){
+void System::scheduler_next(TCB* prev){
 	// para o primeiro trabalho, as tarefas em espera
 	// so esperam o processador. portanto, aqui elas ja
 	// sao colocadas como prontas novamente
@@ -72,6 +73,24 @@ void System::scheduler_next(){
 			}
 			break;
 		}
+		case SchedulerType::PRIOPEnv: {
+			// proximo a executar -> maior prioridade dinamica
+			if (current_task) next_task = current_task;
+			else next_task = ready.front();
+			for (const auto& task : ready) {
+				// atualiza se prioridade dinamica > prioridade atual
+				if(task->getDynamicPriority() > next_task->getDynamicPriority()){
+					next_task = task;
+				}
+				else if(task->getDynamicPriority() == next_task->getDynamicPriority()){
+					// em empate, tarefa com maior prioridade estatica prevalece
+					if(task->getPriority() > next_task->getPriority()){
+						next_task = task;
+					}
+				}
+			}
+			break;
+		}
 		default: {
 			// em default, retorna a primeira na fila de tarefas prontas (FIFO)
 			next_task = ready.front();
@@ -91,8 +110,15 @@ void System::scheduler_next(){
 			// atualiza estado
 			current_task->setState(States::Ready);
 		}
+		
+		// if(current_task != nullptr && next_task != nullptr) cout << "current = " << current_task->getId() << "  nova = " << next_task->getId() << endl; 
 		// atualiza tarefa
 		current_task = next_task;
+		
+		// atualização da prioridade dinâmica toda vez que o escalonador 
+		// escolhe uma nova tarefa
+		if (get_scheduler_type() == SchedulerType::PRIOPEnv && prev != nullptr && prev != current_task) set_call_aging(true);
+		
 	}
 }
 		
@@ -150,7 +176,12 @@ void System::plot_tasks()
 	cout << "\n";
 	cout << "NUMERO DE TASKS NO SISTEMA: " << (ready.size() + waiting.size());
 
-	cout << "\nTASK ATUAL: " << current_task->getId();
+	// imprime task atual e suas informacoes
+	cout << "\nTASK ATUAL: " << current_task->getId() 
+		<< " (remaining time: " << (current_task->getDuration() - current_task->getCurrentTime())
+		<< " | priority: " << current_task->getPriority()  
+		<< (get_scheduler_type() == SchedulerType::PRIOPEnv ? " | dynamic priority: " + to_string(current_task->getDynamicPriority()) : "")
+			<< ')';
 
 	cout << "\nPRONTAS: ";
 	
@@ -159,8 +190,12 @@ void System::plot_tasks()
 		
 	for (const auto& task : ready) {
 		if (task->getState() == Ready){
-		cout << '\n' << task->getId() << " (remaining time:" << 
-			(task->getDuration() - task->getCurrentTime()) << ')';
+		cout << '\n' 
+		<< "- " << task->getId() 
+		<< " (remaining time: " << (task->getDuration() - task->getCurrentTime())
+		<< " | priority: " << task->getPriority()  
+		<< (get_scheduler_type() == SchedulerType::PRIOPEnv ? " | dynamic priority: " + to_string(task->getDynamicPriority()) : "")
+			<< ')';
 		}
 	}
 
@@ -177,6 +212,7 @@ void System::plot_tasks()
 
 void System::update(){	
 	
+	TCB* prev_task = nullptr;
 	// rodar tarefa	se existe uma tarefa no 'processador'
 	if(current_task){
 		// se tarefa ja executou tudo
@@ -187,8 +223,9 @@ void System::update(){
 			if (it != ready.end()) {
 				ready.erase(it);
 			}
+			prev_task = current_task;
 			current_task = nullptr;
-			// scheduler_next(); // seleciona prox tarefa a executar
+			// deve chamar o escalonador para escolher prox
 			set_call_scheduler(true);
 		}
 		// se quantum encerrou, sai por preempcao
@@ -198,15 +235,16 @@ void System::update(){
 			// nesse primeiro trabalho nao precisa esperar
 			// ja volta imediatamente para ready, mas ao final da lista
 			task_ready(current_task);
+			prev_task = current_task;
 			current_task = nullptr;
-			// scheduler_next(); // seleciona prox tarefa a executar
+			// deve chamar o escalonador para escolher prox
 			set_call_scheduler(true);
 		}
 	}	
 	
 	// se nao ha tarefa atual, elege uma
 	if(!current_task or call_scheduler) { 
-		scheduler_next();
+		(prev_task != nullptr) ? scheduler_next(prev_task) : scheduler_next();
 		set_call_scheduler(false);
 		if(!current_task) return; // prevenir erros
 	}
@@ -218,6 +256,12 @@ void System::update(){
     if (it != ready.end()) {
         ready.erase(it);
     }
+    
+    if(call_aging){
+		aging(current_task);
+		set_call_aging(false);
+	}
+	
 	// incrementa no current_time ++
 	current_task->setCurrentTime(current_task->getCurrentTime() + 1);
 	current_quantum++; // tambem incrementa considerando o quantum
@@ -245,9 +289,28 @@ SchedulerType System::get_scheduler_type(){
 string System::get_scheduler_name(){		
 	if (get_scheduler_type() == SchedulerType::PRIOP) return "PRIOP";
 	else if (get_scheduler_type() == SchedulerType::SRTF) return "SRTF";
+	else if (get_scheduler_type() == SchedulerType::PRIOPEnv) return "PRIOPEnv";
 	else return "FIFO";
 }
 
 void System::set_call_scheduler(bool c){
 	call_scheduler = c;
+}
+
+void System::set_call_aging(bool a){
+	call_aging = a;
+}
+			
+
+void System::aging(TCB* current){
+	// evitar erro
+	if (!current) return;
+	
+	// a que esta rodando atualmente volta a prioridade dinamica ao valor da estatica
+	current->setDynamicPriority(current->getPriority());
+	// as demais tarefas envelhecem
+	for (const auto& task : ready) {
+		// prioridade dinamica envelhece conforme constante alpha
+		task->setDynamicPriority(task->getDynamicPriority() + alpha);
+	}
 }

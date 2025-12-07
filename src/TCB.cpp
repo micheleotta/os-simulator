@@ -9,6 +9,7 @@ TCB::TCB(string ID, string c, int init, int dur, int prio):
 	ingress_time = init;
 	current_time = 0;
 	priority = prio;
+	dynamic_priority = priority;
 }
 
 TCB::~TCB(){
@@ -63,8 +64,16 @@ const int TCB::getDuration(){
 }
 
 int TCB::getPriority(){
-	// retorna a prioridade da tarefa
+	// retorna a prioridade estatica da tarefa
 	return priority;
+}
+
+void TCB::setDynamicPriority(int d){
+	dynamic_priority = d;
+}
+
+int TCB::getDynamicPriority(){
+	return dynamic_priority;
 }
 
 void TCB::addEvent(string ev){

@@ -23,7 +23,7 @@ SystemSimulator::~SystemSimulator(){
 	gantt = nullptr;
 	m_clock = nullptr;
 	
-	//desalpca todas as tarefas do sistema
+	//desaloca todas as tarefas do sistema
 	for (int i = 0; i < (int)sys_tasks.size(); i++) {
 		delete(sys_tasks[i]);
 	}
@@ -52,27 +52,31 @@ bool SystemSimulator::create_system(){
     }
     
 	string s;
-	string scheduler_type;
-	int quantum = 0;
+	string scheduler_type, qs, as;
+	int quantum = 0, alpha = 0;
 	// le a primeira linha com o algoritmo de escalonamento e o valor do quantum
 	if(getline(config_file, s)){
 		stringstream ss(s);
-        if (getline(ss, scheduler_type, ';'))
-        	ss >> quantum;
-		//se nao forem informados os valores, retorna mensagem de erro
+        if (getline(ss, scheduler_type, ';') && 
+        	getline(ss, qs, ';') &&
+        	getline(ss, as, ';')){
+				quantum = stoi(qs); // string -> int
+				alpha = stoi(as);
+        }
+		// se nao forem informados os valores, retorna mensagem de erro
 		else {
 			cerr << "\nError: Invalid input on config. archive. \n Please inform scheduler type and system quantum to run the simulation." << endl;
 			return false;
 		}
 	}
 
-	//se o quantum não for informado ou for inválido (zero ou negativo)
+	// se o quantum não for informado ou for inválido (zero ou negativo)
 	if (quantum <= 0){
 		cerr <<  "\nError: Please inform a valid system quantum.\n";
 		return false;
 	}
 
-	//se detectou um algoritmo invalido no arquivo retorna erro
+	// se detectou um algoritmo invalido no arquivo retorna erro
 	if (!valid_st(scheduler_type)){
 		cerr << "Error: Unable to define scheduler algorithm informed at " << config_path
 		<< " \n System suports: FIFO, SRTF and PRIOP.\n";
@@ -80,7 +84,7 @@ bool SystemSimulator::create_system(){
 	}
 
 	// cria sistema com o tipo de escalonamento e valor do quantum
-	system = new System(scheduler_type, quantum);
+	system = new System(scheduler_type, quantum, alpha);
 	
 	TCB* new_task = NULL;
 	string id, color;
@@ -95,10 +99,9 @@ bool SystemSimulator::create_system(){
 		ingress_time = stoi(s);
 		getline(ss, s, ';'); 
 		duration = stoi(s);
-		getline(ss, s, ';'); 
+		getline(ss, s, ';');
 		priority = stoi(s);
 
-        cout << "tarefa: " << id << " cor: " << color << " ingresso: " << ingress_time << " duracao: " << duration << " prioridade: " << priority;
         new_task = new TCB(id, color, ingress_time, duration, priority);
 
 		// le os eventos
@@ -164,8 +167,8 @@ void SystemSimulator::run(){
 				if(qtd_remaining != remaining_tasks.size() && system->get_scheduler_type() != SchedulerType::FIFO){
 					// se entrada de nova tarefa -> syscall
 					// chama o escalonador para eleger a tarefa a executar
-					// system->scheduler_next();
 					system->set_call_scheduler(true);
+					if (system->get_scheduler_type() == SchedulerType::PRIOPEnv) system->set_call_aging(true);
 				}
 			}
 			
@@ -245,17 +248,19 @@ void SystemSimulator::build_config_file()
 	//constroi um arquivo de configuração para o sistema
 	ofstream config_file (config_path);
 	string scheduler;
-	int quantum;
+	int quantum, alpha;
 
 	//pede ao usuário a configuração do sistema
 	cout << " Indique o algoritmo de escalonamento do sistema:" << "\n"
-		<< " - FIFO (default)" << '\n' << " - SRTF" << '\n' << " - PRIOP (Prioridade Preemptivo)" << '\n';
+		<< " - FIFO (default)" << '\n' << " - SRTF" << '\n' << " - PRIOP (Prioridade Preemptivo)" << '\n' << " - PRIOPEnv (Prioridade Preemptivo com Envelhecimento)" << '\n';
 	cin >> scheduler;
 	cout << "Indique o valor do quantum do sistema (Default = 2 ticks):" << "\n";
 	cin >> quantum;
+	cout << "Indique o valor do parametro alpha para envelhecimento do sistema (Default = 1):" << "\n";
+	cin >> alpha;
 	
-	//escreve no arquivo os valores indicados
-	config_file << scheduler << ";" << quantum;
+	// escreve no arquivo os valores indicados
+	config_file << scheduler << ";" << quantum << ";" << alpha;
 
 	//indicação de tarefas
 	string input = "";
@@ -309,9 +314,12 @@ void SystemSimulator::build_config_file()
 		//atualiza id e cor
 		id++;
 		
-		// cor RGB baseada no id
+		// cor RGB em hex baseada no id
 		stringstream ss;
-		ss << "R" << (id * 70) % 256 << "G" << (id * 150) % 256 << "B" << (id * 200) % 256;
+		ss << std::uppercase << std::hex << std::setfill('0');
+		ss << std::setw(2) << ((id * 70) % 256);
+		ss << std::setw(2) << ((id * 150) % 256);
+		ss << std::setw(2) << ((id * 200) % 256);
 		color = ss.str(); 
 
 		cout << "== Tarefa criada. \n Digite 'ok' para finalizar ou 'nova' para criar uma outra tarefa: ";
@@ -324,7 +332,7 @@ void SystemSimulator::build_config_file()
 bool SystemSimulator::valid_st(string st)
 {
 	// strings de algoritmos validos para o escalonador
-	return (st == "FIFO" || st == "SRTF" || st == "PRIOP");
+	return (st == "FIFO" || st == "SRTF" || st == "PRIOP" || st == "PRIOPEnv");
 }
 
 //mostra as informações importantes das tarefas em cada tick
