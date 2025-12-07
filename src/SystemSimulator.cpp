@@ -104,46 +104,59 @@ bool SystemSimulator::create_system()
         new_task = new TCB(id, color, ingress_time, duration, priority);
 
 		// le os eventos
-        while (getline(ss, events, ';'))
-		
+        while (getline(ss, events))
 		{
-			stringstream ss (events);
+			stringstream e(events);
+			string e_info;
             if (!events.empty())
 			{
-				string init, dur, id;
-				int type;
-				getline(ss, s, ':');
-				std::cout << s;
+				//para cada evento (delimitado com ;)
+				while (getline(e, e_info, ';')){
+
+					string init, dur, id;
+					int type;
+					std::cout << s;
+
+					//string option = e_info.substr(0,2);
+					stringstream st (e_info);
+					string option;
+					option = e_info.substr(0,2);
+					
+					if (option == "IO")
+					{
+						getline (st, option,':');
+						id = "io";
+						type = 3;
+						getline(st, init, '-');
+						getline(st, dur, ';');
+					}
+					else if (option == "ML")
+					{
+						getline (st, option,':');
+						dur = "-1";
+						type = 1;
+						id = e_info.substr(2,2);
+						getline(st, init, ';');
+					}
+					else if (option == "MU")
+					{
+						getline (st, option,':');
+						dur = "-1";
+						type = 2;
+						id = e_info.substr(2,2);
+						getline(st, init, ';');
+					}
+					else 
+					{
+						cerr << "Unable to create event specified as ";
+						cerr << option;
+						return false;
+					}
 				
-				if (s == "IO")
-				{
-					id = "io";
-					type = 3;
-					getline(ss, init, '-');
-					getline(ss, dur, ';');
-				}
-				else if (s == "ML")
-				{
-					dur = "-1";
-					type = 1;
-					id = events.substr(2,2);
-					getline(ss, init, ';');
-				}
-				else if (s == "MU")
-				{
-					dur = "-1";
-					type = 2;
-					id = events.substr(2,2);
-					getline(ss, init, ';');
-				}
-				else 
-				{
-					cerr << "Unable to create event specified as ";
-					cerr << s;
-					return false;
+				//std::cout << "\n" << "init:" << init << " dur:" << dur << "id: " <<id << "\n";
+				new_task->addEvent(stoi(init), type, stoi(dur),id);
 				}
 			}
-			//new_task->addEvent(stoi(init), type, stoi(dur),id);
 		}
         
         // adiciona as tarefas na lista de tarefas do SystemSimulator
