@@ -58,6 +58,10 @@ void System::scheduler_next(TCB* prev){
 					min_time = remaining_time;
 					next_task = task;
 				}
+				else if(remaining_time == min_time){
+					next_task = better_choice(task, next_task, prev);
+					min_time = next_task->getDuration() - next_task->getCurrentTime();
+				}
 			}			
 			break;
 		}
@@ -69,6 +73,9 @@ void System::scheduler_next(TCB* prev){
 				// atualiza se prioridade > prioridade atual
 				if(task->getPriority() > next_task->getPriority()){
 					next_task = task;
+				}
+				else if(task->getPriority() == next_task->getPriority()){
+					next_task = better_choice(task, next_task, prev);
 				}
 			}
 			break;
@@ -83,10 +90,12 @@ void System::scheduler_next(TCB* prev){
 					next_task = task;
 				}
 				else if(task->getDynamicPriority() == next_task->getDynamicPriority()){
-					// em empate, tarefa com maior prioridade estatica prevalece
-					if(task->getPriority() > next_task->getPriority()){
-						next_task = task;
+					// em caso de empate:
+					// 1) tarefa com maior prioridade estatica prevalece
+					if(task->getPriority() != next_task->getPriority()){
+						next_task = (task->getPriority() > next_task->getPriority()) ? task : next_task;
 					}
+					else next_task = better_choice(task, next_task, prev);
 				}
 			}
 			break;
@@ -120,6 +129,29 @@ void System::scheduler_next(TCB* prev){
 		if (get_scheduler_type() == SchedulerType::PRIOPEnv && prev != nullptr && prev != current_task) set_call_aging(true);
 		
 	}
+}
+
+TCB* System::better_choice(TCB* task1, TCB* task2, TCB* prev){
+	// para casos de empate
+	
+	// evitar erros
+	if(!task1) return task2;
+	if(!task2) return task1;
+	
+	// 1) tarefa selecionada é a que está executando imediatamente antes
+    if (task1 == prev) return task1;
+    if (task2 == prev) return task2;
+
+    // 2) menor instante de ingresso
+    if (task1->getIngressTime() != task2->getIngressTime())
+        return (task1->getIngressTime() < task2->getIngressTime()) ? task1 : task2;
+
+    // 3) menor duração da tarefa
+    if (task1->getDuration() != task2->getDuration())
+        return (task1->getDuration() < task2->getDuration()) ? task1 : task2;
+
+    // 4) sorteio
+    return (rand() % 2 == 0) ? task1 : task2;
 }
 		
 void System::task_ready(TCB* t){
