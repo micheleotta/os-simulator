@@ -43,11 +43,10 @@ void Gantt::plotChart(int total_time, string type){
     // imprime cada tarefa
     for (int idx = (int)tasks.size() - 1; idx >= 0; --idx) {
         const auto &task = tasks[idx];
-        // string color = COLORS[(task.task)->getColor() % COLORS.size()]; // seleciona a cor
-        string rgb = task.task->getColor(); // "R255G255B255"
-		int r = stoi(rgb.substr(rgb.find('R') + 1, rgb.find('G') - (rgb.find('R') + 1)));
-		int g = stoi(rgb.substr(rgb.find('G') + 1, rgb.find('B') - (rgb.find('G') + 1)));
-		int b = stoi(rgb.substr(rgb.find('B') + 1));
+        string hex = task.task->getColor(); // "F0E0D0"
+		int r = stoi(hex.substr(0, 2), nullptr, 16);
+		int g = stoi(hex.substr(2, 2), nullptr, 16);
+		int b = stoi(hex.substr(4, 2), nullptr, 16);
 		string color = "\033[38;2;" +
 					   std::to_string(r) + ";" +
 					   std::to_string(g) + ";" +
@@ -137,8 +136,14 @@ void Gantt::exportImg(int total_time, string type, string file_name){
     // desenha as tarefas
     for (int idx = (int)tasks.size() - 1, drawIdx = 0; idx >= 0; --idx, ++drawIdx) {
         const auto &task = tasks[idx];
-        // string color = svgColors[(task.task)->getColor() % svgColors.size()]; // selecionar a cor
-        string color = rgbToSvg((task.task)->getColor());
+        string hex = (task.task)->getColor();
+        int r = stoi(hex.substr(0, 2), nullptr, 16);
+		int g = stoi(hex.substr(2, 2), nullptr, 16);
+		int b = stoi(hex.substr(4, 2), nullptr, 16);
+		stringstream ss;
+		ss << "rgb(" << r << "," << g << "," << b << ")";
+		string color = ss.str();
+		
         int y = margin + drawIdx * (barHeight + barSpacing);
         int arrival = (task.task)->getIngressTime(); // inicio
 
@@ -186,22 +191,5 @@ void Gantt::exportImg(int total_time, string type, string file_name){
     svg.close(); // fecha e salva o arquivo
 
     cout << "\n\nArquivo " << file_name << " gerado\n";
-}
-
-string Gantt::rgbToSvg(const string& rgb)
-{
-    auto getVal = [&](char c1, char c2){
-        size_t start = rgb.find(c1) + 1;
-        size_t end = rgb.find(c2);
-        return stoi(rgb.substr(start, end - start));
-    };
-
-    int r = getVal('R','G');
-    int g = getVal('G','B');
-    int b = stoi(rgb.substr(rgb.find('B') + 1));
-
-    stringstream ss;
-    ss << "rgb(" << r << "," << g << "," << b << ")";
-    return ss.str();
 }
 

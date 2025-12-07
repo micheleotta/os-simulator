@@ -7,26 +7,28 @@
 using namespace std;
 
 //algoritmos de escalonamento do sistema
-enum class SchedulerType {FIFO, SRTF, PRIOP};
+enum class SchedulerType {FIFO, SRTF, PRIOP, PRIOPEnv};
 
 class System{
 	 
 	 private:
 	 	const int quantum;
+	 	const int alpha;
 		vector<TCB*> ready;		//tarefas prontas para execução
 		vector<TCB*> waiting;	//tarefas em suspensão
 		bool call_scheduler;
+		bool call_aging;
 		SchedulerType scheduler_type;
 		TCB* current_task;
 		int current_quantum;
-		//define o algoritmo de escalonamento utilizado com base na config
+		// define o algoritmo de escalonamento utilizado com base na config
 		void define_scheduler_type (string st);
 		
 	public:
-		System(string st = "FCFS", int q = 2); //valores default
+		System(string st = "FCFS", int q = 2, int a = 1); //valores default
 		~System();
 		// chamada do escalonador
-		void scheduler_next(); 
+		void scheduler_next(TCB* prev = nullptr); 
 		//atualiza o sistema a cada tick da simulacao
 		void update(); 
 		bool finished();
@@ -38,4 +40,6 @@ class System{
 		SchedulerType get_scheduler_type();
 		string get_scheduler_name();
 		void set_call_scheduler(bool c);
+		void set_call_aging(bool a);
+		void aging(TCB* current);
 };
