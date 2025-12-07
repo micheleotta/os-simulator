@@ -29,6 +29,7 @@ class System{
 		~System();
 		// chamada do escalonador
 		void scheduler_next(TCB* prev = nullptr); 
+		TCB* better_choice(TCB* a, TCB* b, TCB* prev);
 		//atualiza o sistema a cada tick da simulacao
 		void update(); 
 		bool finished();
