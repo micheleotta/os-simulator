@@ -25,10 +25,10 @@ void System::scheduler_next(){
 	// para o primeiro trabalho, as tarefas em espera
 	// so esperam o processador. portanto, aqui elas ja
 	// sao colocadas como prontas novamente
-	for (const auto& waiting_task : waiting) {
-        task_ready(waiting_task);
-    }
-    waiting.clear();
+	//for (const auto& waiting_task : waiting) {
+    //    task_ready(waiting_task);
+    //}
+    //waiting.clear();
     
     // se não houver tarefas prontas, não escolhe nada
     if (ready.empty()){
@@ -202,6 +202,57 @@ void System::update(){
 			// scheduler_next(); // seleciona prox tarefa a executar
 			set_call_scheduler(true);
 		}
+
+		//confere eventos
+		Event* event;
+		//if (current_task->poolEvents())
+		event = current_task->poolEvents();
+		/*
+		if (event != nullptr)
+		{
+			switch (event->type){
+				// mutex-lock
+				case EventType::ML:{
+					//cria mutex no mapa caso ainda não exista
+					if (mutexes.find(event->id) == mutexes.end())
+					{
+						Mutex m;
+						m.lock = true;
+						mutexes[event->id] = m;
+					}
+					//se já estiver em uso, suspende a tarefa
+					else if (mutexes[event->id].lock == true)
+					{
+						(mutexes[event->id].tasks).push(current_task);
+						task_sleep(current_task);
+					}
+					//caso contrario, usa o mutex e trava a seção
+					else
+						mutexes[event->id].lock == true;
+					break;
+				}
+				//mutex-unlock
+				case EventType::MU:{
+					mutexes[event->id].lock == false;
+					TCB* t = (mutexes[event->id].tasks).front();
+					task_ready(t);
+					(mutexes[event->id].tasks).pop();
+				}
+				//operacao de IO
+
+				default: {
+					break;
+				}
+			}
+		}
+		*/
+	/*
+		if (type == IO)
+			cria IRQ (duration)
+			suspend (task)
+		*/
+		// if IRQ != NULL, atualiza IRQs
+			
 	}	
 	
 	// se nao ha tarefa atual, elege uma

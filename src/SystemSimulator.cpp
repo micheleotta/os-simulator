@@ -41,7 +41,8 @@ void SystemSimulator::Create(){
 		cerr << "Unable to create the system.";
 }
 		
-bool SystemSimulator::create_system(){
+bool SystemSimulator::create_system()
+{
 	
 	// cria o sistema com base na leitura do arquivo de configuracao 
 	ifstream config_file(config_path);
@@ -87,7 +88,8 @@ bool SystemSimulator::create_system(){
 	int ingress_time, duration, priority;
     string events;
     // le as linhas das tarefas
-    while (getline(config_file, s)) {
+    while (getline(config_file, s))
+	{
         stringstream ss(s);
         getline(ss, id, ';');
         getline(ss, color, ';');
@@ -98,16 +100,51 @@ bool SystemSimulator::create_system(){
 		getline(ss, s, ';'); 
 		priority = stoi(s);
 
-        cout << "tarefa: " << id << " cor: " << color << " ingresso: " << ingress_time << " duracao: " << duration << " prioridade: " << priority;
+        std::cout << "tarefa: " << id << " cor: " << color << " ingresso: " << ingress_time << " duracao: " << duration << " prioridade: " << priority;
         new_task = new TCB(id, color, ingress_time, duration, priority);
 
 		// le os eventos
-        while (getline(ss, events, ';')) {
-            if (!events.empty()){
-				// adicionar no queue task_events da tarefa
-				new_task->addEvent(events);
+        while (getline(ss, events, ';'))
+		
+		{
+			stringstream ss (events);
+            if (!events.empty())
+			{
+				string init, dur, id;
+				int type;
+				getline(ss, s, ':');
+				std::cout << s;
+				
+				if (s == "IO")
+				{
+					id = "io";
+					type = 3;
+					getline(ss, init, '-');
+					getline(ss, dur, ';');
+				}
+				else if (s == "ML")
+				{
+					dur = "-1";
+					type = 1;
+					id = events.substr(2,2);
+					getline(ss, init, ';');
+				}
+				else if (s == "MU")
+				{
+					dur = "-1";
+					type = 2;
+					id = events.substr(2,2);
+					getline(ss, init, ';');
+				}
+				else 
+				{
+					cerr << "Unable to create event specified as ";
+					cerr << s;
+					return false;
+				}
 			}
-        }
+			//new_task->addEvent(stoi(init), type, stoi(dur),id);
+		}
         
         // adiciona as tarefas na lista de tarefas do SystemSimulator
 		sys_tasks.push_back(new_task);

@@ -1,4 +1,5 @@
 #include "TCB.h"
+#include <iostream>
  
 TCB::TCB(string ID, string c, int init, int dur, int prio):
 	id(ID), duration(dur)
@@ -9,12 +10,12 @@ TCB::TCB(string ID, string c, int init, int dur, int prio):
 	ingress_time = init;
 	current_time = 0;
 	priority = prio;
+	events.clear();
 }
 
 TCB::~TCB(){
-  while (!events.empty()) {
-    removeEvent();
-  }
+    removeAllEvents();
+	events.clear();
 }
 
 const string TCB::getId(){
@@ -67,18 +68,32 @@ int TCB::getPriority(){
 	return priority;
 }
 
-void TCB::addEvent(string ev){
-	// adiciona evento da tarefa
-	events.push(ev);
+void TCB::addEvent(int init_time, int t, int dur, string e_id){
+	Event* ev = new Event();
+	ev->i_time = init_time;
+	ev->id = e_id;
+	ev->type = static_cast<EventType>(t);
+	ev->duration = dur;
+	events.push_back(ev);
 }
 
-void TCB::removeEvent(){
-	// remove evento
-	if(!events.empty())
-		events.pop();
+void TCB::removeAllEvents(){
+	// remove eventos
+	if(!events.empty()){
+		for (const auto& event : events){
+			delete event;
+		}
+	}
 }
 
-queue<string> TCB::getEventQueue(){
-	// retorna eventos da tarefa
-	return events;
+Event* TCB::poolEvents()
+{
+	for (const auto& event : events){
+		if (event != NULL){
+			if (event->i_time >= current_time)
+				return event;
+		}
+	}
+	return NULL;
 }
+
