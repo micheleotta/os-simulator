@@ -1,7 +1,9 @@
 #pragma once
+#include "Mutex.h"
 #include "TCB.h"
 
 #include <vector>
+#include <map>
 #include <algorithm>
 #include <iostream>
 using namespace std;
@@ -21,7 +23,8 @@ class System{
 		SchedulerType scheduler_type;
 		TCB* current_task;
 		int current_quantum;
-		// define o algoritmo de escalonamento utilizado com base na config
+		map<string,Mutex> mutexes;	//travas do sistema
+		//define o algoritmo de escalonamento utilizado com base na config
 		void define_scheduler_type (string st);
 		
 	public:

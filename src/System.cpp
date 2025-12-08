@@ -26,10 +26,10 @@ void System::scheduler_next(TCB* prev){
 	// para o primeiro trabalho, as tarefas em espera
 	// so esperam o processador. portanto, aqui elas ja
 	// sao colocadas como prontas novamente
-	for (const auto& waiting_task : waiting) {
-        task_ready(waiting_task);
-    }
-    waiting.clear();
+	//for (const auto& waiting_task : waiting) {
+    //    task_ready(waiting_task);
+    //}
+    //waiting.clear();
     
     // se não houver tarefas prontas, não escolhe nada
     if (ready.empty()){
@@ -156,7 +156,6 @@ TCB* System::better_choice(TCB* task1, TCB* task2, TCB* prev){
 		
 void System::task_ready(TCB* t){
 	// tarefa fica pronta para executar
-
 	// evitar erro
 	if (!t) return;
 	
@@ -185,10 +184,10 @@ void System::task_sleep(TCB* t){
 	if (!t) return;
 	
 	// retira t da lista de prontas
-	auto it = find(ready.begin(), ready.end(), t);
-    if (it != ready.end()) {
-        ready.erase(it);
-    }
+	//auto it = find(ready.begin(), ready.end(), t);
+    //if (it != ready.end()) {
+    //    ready.erase(it);
+    //}
     
 	// insere t na lista de waiting
     auto itw = find(waiting.begin(), waiting.end(), t);
@@ -219,15 +218,16 @@ void System::plot_tasks()
 	
 	if (ready.empty())
 		cout << "None";
-		
-	for (const auto& task : ready) {
-		if (task->getState() == Ready){
-		cout << '\n' 
-		<< "- " << task->getId() 
-		<< " (remaining time: " << (task->getDuration() - task->getCurrentTime())
-		<< " | priority: " << task->getPriority()  
-		<< (get_scheduler_type() == SchedulerType::PRIOPEnv ? " | dynamic priority: " + to_string(task->getDynamicPriority()) : "")
-			<< ')';
+	else{
+		for (const auto& task : ready) {
+			if (task->getState() == Ready){
+			cout << '\n' 
+			<< "- " << task->getId() 
+			<< " (remaining time: " << (task->getDuration() - task->getCurrentTime())
+			<< " | priority: " << task->getPriority()  
+			<< (get_scheduler_type() == SchedulerType::PRIOPEnv ? " | dynamic priority: " + to_string(task->getDynamicPriority()) : "")
+				<< ')';
+			}
 		}
 	}
 
@@ -272,6 +272,7 @@ void System::update(){
 			// deve chamar o escalonador para escolher prox
 			set_call_scheduler(true);
 		}
+			
 	}	
 	
 	// se nao ha tarefa atual, elege uma
@@ -280,6 +281,57 @@ void System::update(){
 		set_call_scheduler(false);
 		if(!current_task) return; // prevenir erros
 	}
+
+	//confere eventos
+	Event* event;
+	event = current_task->poolEvents();
+
+	if (event != nullptr)
+	{
+		switch (event->type){
+			// mutex-lock
+			case EventType::ML:{
+				//cria mutex no mapa caso ainda não exista
+				if (mutexes.find(event->id) == mutexes.end())
+				{
+					Mutex m;
+					m.lock = false;
+					mutexes[event->id] = m;
+				}
+				//se já estiver em uso, suspende a tarefa
+				else if (mutexes[event->id].lock == true)
+				{
+					(mutexes[event->id].tasks).push(current_task);
+					task_sleep(current_task);
+					scheduler_next();
+				}
+				//caso contrario, usa o mutex e trava a seção
+				else
+					mutexes[event->id].lock = true;
+				break;
+			}
+			//mutex-unlock
+			case EventType::MU:{
+				mutexes[event->id].lock = false;
+				TCB* t = (mutexes[event->id].tasks).front();
+				if (t){
+					task_ready(t);
+					//(mutexes[event->id].tasks).pop();
+				}
+			}
+			//operacao de IO
+
+			default: {
+				break;
+			}
+		}
+	}
+	/*
+		if (type == IO)
+			cria IRQ (duration)
+			suspend (task)
+		*/
+		// if IRQ != NULL, atualiza IRQs
 	
 	// roda a tarefa atual!
 	current_task->setState(States::Running);
